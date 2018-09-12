@@ -25,7 +25,7 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
     }
 
     /* 0x400 is the spin count value suggested in the documentation */
-    if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
+    InitializeCriticalSection(lock); if(0) {
         OPENSSL_free(lock);
         return NULL;
     }

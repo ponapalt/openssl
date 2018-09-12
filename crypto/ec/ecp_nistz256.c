@@ -33,8 +33,8 @@
 
 #if defined(__GNUC__)
 # define ALIGN32        __attribute((aligned(32)))
-#elif defined(_MSC_VER)
-# define ALIGN32        __declspec(align(32))
+//#elif defined(_MSC_VER)
+//# define ALIGN32        __declspec(align(32))
 #else
 # define ALIGN32
 #endif
