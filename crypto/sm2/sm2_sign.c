@@ -67,7 +67,7 @@ int sm2_compute_z_digest(uint8_t *out,
 
     /* Z = h(ENTL || ID || a || b || xG || yG || xA || yA) */
 
-    if (id_len >= (UINT16_MAX / 8)) {
+    if (id_len >= (0xffffUL / 8)) {
         /* too large */
         SM2err(SM2_F_SM2_COMPUTE_Z_DIGEST, SM2_R_ID_TOO_LARGE);
         goto done;
