@@ -471,7 +471,7 @@ struct ssl_method_st {
     long (*ssl_ctx_callback_ctrl) (SSL_CTX *s, int cb_id, void (*fp) (void));
 };
 
-# define TLS13_MAX_RESUMPTION_PSK_LENGTH      64
+# define TLS13_MAX_RESUMPTION_PSK_LENGTH      PSK_MAX_PSK_LEN
 
 /*-
  * Lets make this into an ASN.1 type structure as follows
@@ -2251,7 +2251,6 @@ __owur int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
 DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
 __owur int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
                                  const SSL_CIPHER *const *bp);
-__owur int set_ciphersuites(STACK_OF(SSL_CIPHER) **currciphers, const char *str);
 __owur STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
                                                     STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
                                                     STACK_OF(SSL_CIPHER) **cipher_list,
