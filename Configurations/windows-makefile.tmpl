@@ -40,6 +40,8 @@
 
  sub lib {
      (my $lib = shift) =~ s/\.a$//;
+     $lib .= '_static'
+         if (defined $unified_info{sharednames}->{$lib});
      return $lib . $libext;
  }
 
@@ -74,7 +76,7 @@ MINOR={- $config{minor} -}
 
 SHLIB_VERSION_NUMBER={- $config{shlib_version_number} -}
 
-LIBS={- join(" ", map { lib($_) } @{$unified_info{libraries}}) -}
+LIBS={- join(" ", map { ( shlib_import($_), lib($_) ) } @{$unified_info{libraries}}) -}
 SHLIBS={- join(" ", map { shlib($_) } @{$unified_info{libraries}}) -}
 SHLIBPDBS={- join(" ", map { local $shlibext = ".pdb"; shlib($_) } @{$unified_info{libraries}}) -}
 ENGINES={- join(" ", map { dso($_) } @{$unified_info{engines}}) -}
@@ -92,7 +94,7 @@ GENERATED={- # common0.tmpl provides @generated
              join(" ", map { (my $x = $_) =~ s|\.[sS]$|.asm|; $x }
                        @generated) -}
 
-INSTALL_LIBS={- join(" ", map { quotify1(lib($_)) } @{$unified_info{install}->{libraries}}) -}
+INSTALL_LIBS={- join(" ", map { quotify1(shlib_import($_) or lib($_)) } @{$unified_info{install}->{libraries}}) -}
 INSTALL_SHLIBS={- join(" ", map { quotify_l(shlib($_)) } @{$unified_info{install}->{libraries}}) -}
 INSTALL_SHLIBPDBS={- join(" ", map { local $shlibext = ".pdb"; quotify_l(shlib($_)) } @{$unified_info{install}->{libraries}}) -}
 INSTALL_ENGINES={- join(" ", map { quotify1(dso($_)) } @{$unified_info{install}->{engines}}) -}
@@ -381,7 +383,7 @@ depend:
 
 # Install helper targets #############################################
 
-install_sw: all install_dev install_engines install_runtime
+install_sw: install_dev install_engines install_runtime
 
 uninstall_sw: uninstall_runtime uninstall_engines uninstall_dev
 
@@ -406,7 +408,7 @@ install_ssldirs:
          "$(PERL)" "$(SRCDIR)\util\copy.pl" "$(SRCDIR)\apps\ct_log_list.cnf" \
                                         "$(OPENSSLDIR)\ct_log_list.cnf"
 
-install_dev:
+install_dev: install_runtime_libs
 	@if "$(INSTALLTOP)"=="" ( $(ECHO) "INSTALLTOP should not be empty" & exit 1 )
 	@$(ECHO) "*** Installing development files"
 	@"$(PERL)" "$(SRCDIR)\util\mkdir-p.pl" "$(INSTALLTOP)\include\openssl"
@@ -426,7 +428,7 @@ install_dev:
 
 uninstall_dev:
 
-install_engines:
+install_engines: install_runtime_libs build_engines
 	@if "$(INSTALLTOP)"=="" ( $(ECHO) "INSTALLTOP should not be empty" & exit 1 )
 	@$(ECHO) "*** Installing engines"
 	@"$(PERL)" "$(SRCDIR)\util\mkdir-p.pl" "$(ENGINESDIR)"
@@ -437,15 +439,22 @@ install_engines:
 
 uninstall_engines:
 
-install_runtime:
+install_runtime: install_programs
+
+install_runtime_libs: build_libs
 	@if "$(INSTALLTOP)"=="" ( $(ECHO) "INSTALLTOP should not be empty" & exit 1 )
-	@$(ECHO) "*** Installing runtime files"
+	@$(ECHO) "*** Installing runtime libraries"
 	@"$(PERL)" "$(SRCDIR)\util\mkdir-p.pl" "$(INSTALLTOP)\bin"
 	@if not "$(SHLIBS)"=="" \
 	 "$(PERL)" "$(SRCDIR)\util\copy.pl" $(INSTALL_SHLIBS) "$(INSTALLTOP)\bin"
 	@if not "$(SHLIBS)"=="" \
 	 "$(PERL)" "$(SRCDIR)\util\copy.pl" $(INSTALL_SHLIBPDBS) \
                                         "$(INSTALLTOP)\bin"
+
+install_programs: install_runtime_libs build_programs
+	@if "$(INSTALLTOP)"=="" ( $(ECHO) "INSTALLTOP should not be empty" & exit 1 )
+	@$(ECHO) "*** Installing runtime programs"
+	@"$(PERL)" "$(SRCDIR)\util\mkdir-p.pl" "$(INSTALLTOP)\bin"
 	@"$(PERL)" "$(SRCDIR)\util\copy.pl" $(INSTALL_PROGRAMS) \
                                         "$(INSTALLTOP)\bin"
 	@"$(PERL)" "$(SRCDIR)\util\copy.pl" $(INSTALL_PROGRAMPDBS) \
@@ -485,11 +494,6 @@ reconfigure reconf:
  sub compute_lib_depends {
      if ($disabled{shared}) {
 	 return map { lib($_) } @_;
-     }
-     foreach (@_) {
-         (my $l = $_) =~ s/\.a$//;
-         die "Linking with static variants of shared libraries is not supported in this configuration\n"
-             if $l ne $_ && shlib($l);
      }
      return map { shlib_import($_) or lib($_) } @_;
  }
@@ -597,16 +601,14 @@ $obj$objext: $deps
 	\$(CC) /EP /D__ASSEMBLER__ $cflags $srcs > \$@.asm && \$(AS) $asflags \$(ASOUTFLAG)\$\@ \$@.asm
 EOF
      }
-     return <<"EOF"	if (!$disabled{makedepend});
-$obj$depext: $deps
-	\$(CC) $cflags /Zs /showIncludes $srcs 2>&1 > $obj$depext
-$obj$objext: $obj$depext
-	\$(CC) $cflags -c \$(COUTFLAG)\$\@ $srcs
-EOF
-    return <<"EOF"	if ($disabled{makedepend});
+     my $recipe = <<"EOF";
 $obj$objext: $deps
 	\$(CC) $cflags -c \$(COUTFLAG)\$\@ $srcs
 EOF
+     $recipe .= <<"EOF"	unless $disabled{makedepend};
+	\$(CC) $cflags /Zs /showIncludes $srcs 2>&1 > $obj$depext
+EOF
+     return $recipe;
  }
 
  # We *know* this routine is only called when we've configure 'shared'.
@@ -677,20 +679,13 @@ EOF
  }
  sub obj2lib {
      my %args = @_;
-     my $lib = $args{lib};
-
-     # Because static libs and import libs are both named the same in native
-     # Windows, we can't have both.  We skip the static lib in that case,
-     # as the shared libs are what we use anyway.
-     return "" unless $disabled{"shared"} || $lib =~ /\.a$/;
-
-     $lib =~ s/\.a$//;
+     my $lib = lib($args{lib});
      my @objs = map { (my $x = $_) =~ s|\.o$|$objext|; $x } @{$args{objs}};
      my $objs = join("\n", @objs);
      my $deps = join(" ", @objs);
      return <<"EOF";
-$lib$libext: $deps
-	\$(AR) \$(ARFLAGS) \$(AROUTFLAG)$lib$libext @<<
+$lib: $deps
+	\$(AR) \$(ARFLAGS) \$(AROUTFLAG)$lib @<<
 $objs
 <<
 EOF
@@ -737,6 +732,10 @@ EOF
                       lib => $libext,
                       bin => $exeext );
 
+      # We already have a 'test' target, and the top directory is just plain
+      # silly
+      return if $dir eq "test" || $dir eq ".";
+
       foreach my $type (("dso", "lib", "bin", "script")) {
           next unless defined($unified_info{dirinfo}->{$dir}->{products}->{$type});
           # For lib object files, we could update the library.  However,
@@ -754,7 +753,7 @@ EOF
       my $deps = join(" ", @deps);
       my $actions = join("\n", "", @actions);
       return <<"EOF";
-$args{dir} $args{dir}\\ : $deps$actions
+$dir $dir\\ : $deps$actions
 EOF
   }
   ""    # Important!  This becomes part of the template result.
