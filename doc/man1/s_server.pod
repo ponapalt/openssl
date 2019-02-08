@@ -173,6 +173,7 @@ B<openssl> B<s_server>
 [B<-dtls1>]
 [B<-dtls1_2>]
 [B<-sctp>]
+[B<-sctp_label_bug>]
 [B<-no_dhe>]
 [B<-nextprotoneg val>]
 [B<-use_srtp val>]
@@ -685,6 +686,14 @@ Use SCTP for the transport protocol instead of UDP in DTLS. Must be used in
 conjunction with B<-dtls>, B<-dtls1> or B<-dtls1_2>. This option is only
 available where OpenSSL has support for SCTP enabled.
 
+=item B<-sctp_label_bug>
+
+Use the incorrect behaviour of older OpenSSL implementations when computing
+endpoint-pair shared secrets for DTLS/SCTP. This allows communication with
+older broken implementations but breaks interoperability with correct
+implementations. Must be used in conjunction with B<-sctp>. This option is only
+available where OpenSSL has support for SCTP enabled.
+
 =item B<-no_dhe>
 
 If this option is set then no DH parameters will be loaded effectively
@@ -825,7 +834,7 @@ unknown cipher suites a client says it supports.
 L<SSL_CONF_cmd(3)>, L<sess_id(1)>, L<s_client(1)>, L<ciphers(1)>
 L<SSL_CTX_set_max_send_fragment(3)>,
 L<SSL_CTX_set_split_send_fragment(3)>,
-L<SSL_CTX_set_max_pipelines(3)> 
+L<SSL_CTX_set_max_pipelines(3)>
 
 =head1 HISTORY
 
