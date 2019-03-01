@@ -1,5 +1,5 @@
 #! /usr/bin/env perl
-# Copyright 2016-2018 The OpenSSL Project Authors. All Rights Reserved.
+# Copyright 2016-2019 The OpenSSL Project Authors. All Rights Reserved.
 #
 # Licensed under the OpenSSL license (the "License").  You may not use
 # this file except in compliance with the License.  You can obtain a copy
@@ -20,6 +20,7 @@ use configdata;
 
 plan skip_all => "Test only supported in a shared build" if disabled("shared");
 plan skip_all => "Test is disabled on AIX" if config('target') =~ m|^aix|;
+plan skip_all => "Test is disabled on VMS" if config('target') =~ m|^vms|;
 plan skip_all => "Test only supported in a dso build" if disabled("dso");
 
 plan tests => 10;
