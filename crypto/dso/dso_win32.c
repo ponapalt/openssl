@@ -565,8 +565,8 @@ static int win32_pathbyaddr(void *addr, char *path, int sz)
 
     /* Enumerate the modules to find one which includes me. */
     do {
-        if ((uintptr_t) addr >= (uintptr_t) me32.modBaseAddr &&
-            (uintptr_t) addr < (uintptr_t) (me32.modBaseAddr + me32.modBaseSize)) {
+        if ((UINT_PTR) addr >= (UINT_PTR) me32.modBaseAddr &&
+            (UINT_PTR) addr < (UINT_PTR) (me32.modBaseAddr + me32.modBaseSize)) {
             (*close_snap) (hModuleSnap);
             FreeLibrary(dll);
 # ifdef _WIN32_WCE
