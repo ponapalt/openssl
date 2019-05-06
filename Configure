@@ -562,7 +562,7 @@ my %user = (
     PERL        => env('PERL') || ($^O ne "VMS" ? $^X : "perl"),
     RANLIB      => env('RANLIB'),
     RC          => env('RC') || env('WINDRES'),
-    RCFLAGS     => [],
+    RCFLAGS     => [ env('RCFLAGS') || () ],
     RM          => undef,
    );
 # Info about what "make variables" may be prefixed with the cross compiler
@@ -579,6 +579,7 @@ my %useradd = (
     CXXFLAGS    => [],
     LDFLAGS     => [],
     LDLIBS      => [],
+    RCFLAGS     => [],
    );
 
 my %user_synonyms = (
@@ -860,9 +861,6 @@ while (@argvcopy)
                 elsif (/^-static$/)
                         {
                         push @{$useradd{LDFLAGS}}, $_;
-                        $disabled{"pic"} = "forced";
-                        $disabled{"shared"} = "forced";
-                        $disabled{"threads"} = "forced";
                         }
                 elsif (/^-D(.*)$/)
                         {
@@ -974,20 +972,30 @@ if (grep { /-rpath\b/ } ($user{LDFLAGS} ? @{$user{LDFLAGS}} : ())
         "***** any of asan, msan or ubsan\n";
 }
 
-my @tocheckfor = (keys %disabled);
-while (@tocheckfor) {
-    my %new_tocheckfor = ();
-    my @cascade_copy = (@disable_cascades);
-    while (@cascade_copy) {
-        my ($test, $descendents) = (shift @cascade_copy, shift @cascade_copy);
-        if (ref($test) eq "CODE" ? $test->() : defined($disabled{$test})) {
-            foreach(grep { !defined($disabled{$_}) } @$descendents) {
-                $new_tocheckfor{$_} = 1; $disabled{$_} = "forced";
+sub disable {
+    my $disable_type = shift;
+
+    for (@_) {
+        $disabled{$_} = $disable_type;
+    }
+
+    my @tocheckfor = (@_ ? @_ : keys %disabled);
+    while (@tocheckfor) {
+        my %new_tocheckfor = ();
+        my @cascade_copy = (@disable_cascades);
+        while (@cascade_copy) {
+            my ($test, $descendents) =
+                (shift @cascade_copy, shift @cascade_copy);
+            if (ref($test) eq "CODE" ? $test->() : defined($disabled{$test})) {
+                foreach (grep { !defined($disabled{$_}) } @$descendents) {
+                    $new_tocheckfor{$_} = 1; $disabled{$_} = "cascade";
+                }
             }
         }
+        @tocheckfor = (keys %new_tocheckfor);
     }
-    @tocheckfor = (keys %new_tocheckfor);
 }
+disable();                     # First cascade run
 
 our $die = sub { die @_; };
 if ($target eq "TABLE") {
@@ -1071,47 +1079,11 @@ foreach (keys %target_attr_translate) {
 
 %target = ( %{$table{DEFAULTS}}, %target );
 
-# Make the flags to build DSOs the same as for shared libraries unless they
-# are already defined
-$target{module_cflags} = $target{shared_cflag} unless defined $target{module_cflags};
-$target{module_cxxflags} = $target{shared_cxxflag} unless defined $target{module_cxxflags};
-$target{module_ldflags} = $target{shared_ldflag} unless defined $target{module_ldflags};
-{
-    my $shared_info_pl =
-        catfile(dirname($0), "Configurations", "shared-info.pl");
-    my %shared_info = read_eval_file($shared_info_pl);
-    push @{$target{_conf_fname_int}}, $shared_info_pl;
-    my $si = $target{shared_target};
-    while (ref $si ne "HASH") {
-        last if ! defined $si;
-        if (ref $si eq "CODE") {
-            $si = $si->();
-        } else {
-            $si = $shared_info{$si};
-        }
-    }
-
-    # Some of the 'shared_target' values don't have any entried in
-    # %shared_info.  That's perfectly fine, AS LONG AS the build file
-    # template knows how to handle this.  That is currently the case for
-    # Windows and VMS.
-    if (defined $si) {
-        # Just as above, copy certain shared_* attributes to the corresponding
-        # module_ attribute unless the latter is already defined
-        $si->{module_cflags} = $si->{shared_cflag} unless defined $si->{module_cflags};
-        $si->{module_cxxflags} = $si->{shared_cxxflag} unless defined $si->{module_cxxflags};
-        $si->{module_ldflags} = $si->{shared_ldflag} unless defined $si->{module_ldflags};
-        foreach (sort keys %$si) {
-            $target{$_} = defined $target{$_}
-                ? add($si->{$_})->($target{$_})
-                : $si->{$_};
-        }
-    }
-}
-
 my %conf_files = map { $_ => 1 } (@{$target{_conf_fname_int}});
 $config{conf_files} = [ sort keys %conf_files ];
 
+# Using sub disable within these loops may prove fragile, so we run
+# a cascade afterwards
 foreach my $feature (@{$target{disable}}) {
     if (exists $deprecated_disablables{$feature}) {
         warn "***** config $target disables deprecated feature $feature\n";
@@ -1130,6 +1102,7 @@ foreach my $feature (@{$target{enable}}) {
         delete $disabled{$feature};
     }
 }
+disable();                      # Run a cascade now
 
 $target{CXXFLAGS}//=$target{CFLAGS} if $target{CXX};
 $target{cxxflags}//=$target{cflags} if $target{CXX};
@@ -1178,6 +1151,22 @@ foreach (keys %user) {
         || $mkvalue->($ref_type, $target{$_});
     delete $config{$_} unless defined $config{$_};
 }
+
+# Finish up %config by appending things the user gave us on the command line
+# apart from "make variables"
+foreach (keys %useradd) {
+    # The must all be lists, so we assert that here
+    die "internal error: \$useradd{$_} isn't an ARRAY\n"
+        unless ref $useradd{$_} eq 'ARRAY';
+
+    if (defined $config{$_}) {
+        push @{$config{$_}}, @{$useradd{$_}};
+    } else {
+        $config{$_} = [ @{$useradd{$_}} ];
+    }
+}
+# At this point, we can forget everything about %user and %useradd,
+# because it's now all been merged into the corresponding $config entry
 
 # Allow overriding the build file name
 $config{build_file} = env('BUILDFILE') || $target{build_file} || "Makefile";
@@ -1255,8 +1244,7 @@ if ($target =~ /^mingw/ && `$config{CC} --target-help 2>&1` =~ m/-mno-cygwin/m)
         }
 
 if ($target =~ /linux.*-mips/ && !$disabled{asm}
-        && !grep { $_ !~ /-m(ips|arch=)/ } (@{$user{CFLAGS}},
-                                            @{$useradd{CFLAGS}})) {
+        && !grep { $_ !~ /-m(ips|arch=)/ } (@{$config{CFLAGS}})) {
         # minimally required architecture flags for assembly modules
         my $value;
         $value = '-mips2' if ($target =~ /mips32/);
@@ -1270,7 +1258,7 @@ unless ($disabled{threads}) {
     if ($auto_threads) {
         # Enabled by default, disable it forcibly if unavailable
         if ($target{thread_scheme} eq "(unknown)") {
-            $disabled{threads} = "unavailable";
+            disable("unavailable", 'threads');
         }
     } else {
         # The user chose to enable threads explicitly, let's see
@@ -1281,8 +1269,7 @@ unless ($disabled{threads}) {
             # system-dependent compiler options that are necessary.  We
             # can't truly check that the given options are correct, but
             # we expect the user to know what [s]He is doing.
-            if (!@{$user{CFLAGS}} && !@{$useradd{CFLAGS}}
-                    && !@{$user{CPPDEFINES}} && !@{$useradd{CPPDEFINES}}) {
+            if (!@{$config{CFLAGS}} && !@{$config{CPPDEFINES}}) {
                 die "You asked for multi-threading support, but didn't\n"
                     ,"provide any system-specific compiler options\n";
             }
@@ -1306,9 +1293,7 @@ if ($target{shared_target} eq "")
         {
         $no_shared_warn = 1
             if (!$disabled{shared} || !$disabled{"dynamic-engine"});
-        $disabled{shared} = "no-shared-target";
-        $disabled{pic} = $disabled{shared} = $disabled{"dynamic-engine"} =
-            "no-shared-target";
+        disable('no-shared-target', 'pic');
         }
 
 if ($disabled{"dynamic-engine"}) {
@@ -1457,7 +1442,7 @@ if (!$disabled{makedepend}) {
         # In all other cases, we look for 'makedepend', and disable the
         # capability if not found.
         $config{makedepprog} = which('makedepend');
-        $disabled{makedepend} = "unavailable" unless $config{makedepprog};
+        disable('unavailable', 'makedepend') unless $config{makedepprog};
     }
 }
 
@@ -1546,12 +1531,17 @@ if ($strict_warnings)
                 @{$clang_devteam_warn{CXXFLAGS}}
                         if (defined($predefined_CXX{__clang__}));
         }
+
+if (grep { $_ eq '-static' } @{$config{LDFLAGS}}) {
+    disable('static', 'pic', 'threads');
+}
+
 foreach my $idx (qw(CFLAGS CXXFLAGS))
         {
-        $useradd{$idx} = [ map { $_ eq '--ossl-strict-warnings'
-                                     ? @{$strict_warnings_collection{$idx}}
-                                     : ( $_ ) }
-                               @{$useradd{$idx}} ];
+        $config{$idx} = [ map { $_ eq '--ossl-strict-warnings'
+                                    ? @{$strict_warnings_collection{$idx}}
+                                : ( $_ ) }
+                          @{$config{$idx}} ];
         }
 
 unless ($disabled{"crypto-mdebug-backtrace"})
@@ -1580,35 +1570,62 @@ unless ($disabled{afalgeng}) {
             ($mi2) = $mi2 =~ /(\d+)/;
             my $ver = $ma*10000 + $mi1*100 + $mi2;
             if ($ver < $minver) {
-                $disabled{afalgeng} = "too-old-kernel";
+                disable('too-old-kernel', 'afalgeng');
             } else {
                 push @{$config{engdirs}}, "afalg";
             }
         } else {
-            $disabled{afalgeng} = "cross-compiling";
+            disable('cross-compiling', 'afalgeng');
         }
     } else {
-        $disabled{afalgeng}  = "not-linux";
+        disable('not-linux', 'afalgeng');
     }
 }
 
 push @{$config{openssl_other_defines}}, "OPENSSL_NO_AFALGENG" if ($disabled{afalgeng});
 
-# Finish up %config by appending things the user gave us on the command line
-# apart from "make variables"
-foreach (keys %useradd) {
-    # The must all be lists, so we assert that here
-    die "internal error: \$useradd{$_} isn't an ARRAY\n"
-        unless ref $useradd{$_} eq 'ARRAY';
+# Get the extra flags used when building shared libraries and modules.  We
+# do this late because some of them depend on %disabled.
 
-    if (defined $config{$_}) {
-        push @{$config{$_}}, @{$useradd{$_}};
-    } else {
-        $config{$_} = [ @{$useradd{$_}} ];
+# Make the flags to build DSOs the same as for shared libraries unless they
+# are already defined
+$target{module_cflags} = $target{shared_cflag} unless defined $target{module_cflags};
+$target{module_cxxflags} = $target{shared_cxxflag} unless defined $target{module_cxxflags};
+$target{module_ldflags} = $target{shared_ldflag} unless defined $target{module_ldflags};
+{
+    my $shared_info_pl =
+        catfile(dirname($0), "Configurations", "shared-info.pl");
+    my %shared_info = read_eval_file($shared_info_pl);
+    push @{$target{_conf_fname_int}}, $shared_info_pl;
+    my $si = $target{shared_target};
+    while (ref $si ne "HASH") {
+        last if ! defined $si;
+        if (ref $si eq "CODE") {
+            $si = $si->();
+        } else {
+            $si = $shared_info{$si};
+        }
+    }
+
+    # Some of the 'shared_target' values don't have any entries in
+    # %shared_info.  That's perfectly fine, AS LONG AS the build file
+    # template knows how to handle this.  That is currently the case for
+    # Windows and VMS.
+    if (defined $si) {
+        # Just as above, copy certain shared_* attributes to the corresponding
+        # module_ attribute unless the latter is already defined
+        $si->{module_cflags} = $si->{shared_cflag} unless defined $si->{module_cflags};
+        $si->{module_cxxflags} = $si->{shared_cxxflag} unless defined $si->{module_cxxflags};
+        $si->{module_ldflags} = $si->{shared_ldflag} unless defined $si->{module_ldflags};
+        foreach (sort keys %$si) {
+            $target{$_} = defined $target{$_}
+                ? add($si->{$_})->($target{$_})
+                : $si->{$_};
+        }
     }
 }
 
-# ALL MODIFICATIONS TO %config and %target MUST BE DONE FROM HERE ON
+# ALL MODIFICATIONS TO %disabled, %config and %target MUST BE DONE FROM HERE ON
 
 # If we use the unified build, collect information from build.info files
 my %unified_info = ();
