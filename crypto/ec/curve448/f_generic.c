@@ -11,10 +11,18 @@
  */
 #include "field.h"
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 static const gf MODULUS = {
-    FIELD_LITERAL(0xffffffffffffffULL, 0xffffffffffffffULL, 0xffffffffffffffULL,
-                  0xffffffffffffffULL, 0xfffffffffffffeULL, 0xffffffffffffffULL,
-                  0xffffffffffffffULL, 0xffffffffffffffULL)
+    FIELD_LITERAL(U64(0xffffffffffffff), U64(0xffffffffffffff), U64(0xffffffffffffff),
+                  U64(0xffffffffffffff), U64(0xfffffffffffffe), U64(0xffffffffffffff),
+                  U64(0xffffffffffffff), U64(0xffffffffffffff))
 };
 
 /* Serialize to wire format. */

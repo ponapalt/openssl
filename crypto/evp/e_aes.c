@@ -19,6 +19,14 @@
 #include <openssl/rand.h>
 #include "evp_locl.h"
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 typedef struct {
     union {
         double align;
@@ -2038,7 +2046,7 @@ static int s390x_aes_ccm(S390X_AES_CCM_CTX *ctx, const unsigned char *in,
     if (enc) {
         /* Two operations per block plus one for tag encryption */
         ctx->aes.ccm.blocks += (((len + 15) >> 4) << 1) + 1;
-        if (ctx->aes.ccm.blocks > (1ULL << 61))
+        if (ctx->aes.ccm.blocks > (U64(1) << 61))
             return -2;		/* too much data */
     }
 

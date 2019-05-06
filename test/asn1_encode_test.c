@@ -24,6 +24,14 @@
 # pragma clang diagnostic ignored "-Wformat"
 #endif
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 /***** Custom test data ******************************************************/
 
 /*
@@ -396,7 +404,7 @@ static ASN1_INT64_DATA int64_expected[] = {
     CUSTOM_EXPECTED_FAILURE,     /* t_8bytes_3_pad (illegal padding) */
     CUSTOM_EXPECTED_SUCCESS(INT64_MIN, INT64_MIN), /* t_8bytes_4_neg */
     CUSTOM_EXPECTED_FAILURE,     /* t_8bytes_5_negpad (illegal padding) */
-    CUSTOM_EXPECTED_SUCCESS(0x1ffffffffULL, 0x1ffffffffULL), /* t_5bytes_1 */
+    CUSTOM_EXPECTED_SUCCESS(U64(0x1ffffffff), U64(0x1ffffffff)), /* t_5bytes_1 */
     CUSTOM_EXPECTED_SUCCESS(0x80000000, 0x80000000), /* t_4bytes_1 */
     CUSTOM_EXPECTED_SUCCESS(INT32_MAX - 1, INT32_MAX -1), /* t_4bytes_2 */
     CUSTOM_EXPECTED_FAILURE,     /* t_4bytes_3_pad (illegal padding) */
@@ -446,7 +454,7 @@ static ASN1_UINT64_DATA uint64_expected[] = {
     CUSTOM_EXPECTED_FAILURE,     /* t_8bytes_3_pad */
     CUSTOM_EXPECTED_FAILURE,     /* t_8bytes_4_neg */
     CUSTOM_EXPECTED_FAILURE,     /* t_8bytes_5_negpad */
-    CUSTOM_EXPECTED_SUCCESS(0x1ffffffffULL, 0x1ffffffffULL), /* t_5bytes_1 */
+    CUSTOM_EXPECTED_SUCCESS(U64(0x1ffffffff), U64(0x1ffffffff)), /* t_5bytes_1 */
     CUSTOM_EXPECTED_SUCCESS(0x80000000, 0x80000000), /* t_4bytes_1 */
     CUSTOM_EXPECTED_SUCCESS(INT32_MAX - 1, INT32_MAX -1), /* t_4bytes_2 */
     CUSTOM_EXPECTED_FAILURE,     /* t_4bytes_3_pad (illegal padding) */

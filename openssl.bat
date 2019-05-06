@@ -7,6 +7,6 @@ perl Configure VC-WIN32 no-dynamic-engine no-hw no-deprecated no-async no-ssl3 n
 del /f makefile.orig
 ren makefile makefile.orig
 
-sed -e "s/-D\"UNICODE\" -D\"_UNICODE\"/-DNDEBUG -DSTRICT -D_MBCS -MT/" -e "s/\/WX//" makefile.orig > makefile
+sed -e "s/-D\"UNICODE\" -D\"_UNICODE\"/-DNDEBUG -DSTRICT -D_MBCS -MT/" -e "s/\/WX//" -e "s/\/showIncludes//g" -e "s/\/wd4090//g" -e "s/\/MD/\/MT/" makefile.orig > makefile
 
 nmake /f makefile

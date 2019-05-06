@@ -70,6 +70,14 @@
         v2 = ROTL(v2, 32);                                                     \
     } while (0)
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 size_t SipHash_ctx_size(void)
 {
     return sizeof(SIPHASH);
@@ -130,10 +138,10 @@ int SipHash_Init(SIPHASH *ctx, const unsigned char *k, int crounds, int drounds)
     ctx->len = 0;
     ctx->total_inlen = 0;
 
-    ctx->v0 = 0x736f6d6570736575Ui64 ^ k0;
-    ctx->v1 = 0x646f72616e646f6dUi64 ^ k1;
-    ctx->v2 = 0x6c7967656e657261Ui64 ^ k0;
-    ctx->v3 = 0x7465646279746573Ui64 ^ k1;
+    ctx->v0 = U64(0x736f6d6570736575) ^ k0;
+    ctx->v1 = U64(0x646f72616e646f6d) ^ k1;
+    ctx->v2 = U64(0x6c7967656e657261) ^ k0;
+    ctx->v3 = U64(0x7465646279746573) ^ k1;
 
     if (ctx->hash_size == SIPHASH_MAX_DIGEST_SIZE)
         ctx->v1 ^= 0xee;

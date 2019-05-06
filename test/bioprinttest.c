@@ -18,6 +18,14 @@
 
 #define nelem(x) (int)(sizeof(x) / sizeof((x)[0]))
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 static int justprint = 0;
 
 static char *fpexpected[][10][5] = {
@@ -146,14 +154,14 @@ typedef struct j_data_st {
 } j_data;
 
 static j_data jf_data[] = {
-    { 0xffffffffffffffffULL, "%ju", "18446744073709551615" },
-    { 0xffffffffffffffffULL, "%jx", "ffffffffffffffff" },
-    { 0x8000000000000000ULL, "%ju", "9223372036854775808" },
+    { U64(0xffffffffffffffff), "%ju", "18446744073709551615" },
+    { U64(0xffffffffffffffff), "%jx", "ffffffffffffffff" },
+    { U64(0x8000000000000000), "%ju", "9223372036854775808" },
     /*
      * These tests imply two's-complement, but it's the only binary
      * representation we support, see test/sanitytest.c...
      */
-    { 0x8000000000000000ULL, "%ji", "-9223372036854775808" },
+    { U64(0x8000000000000000), "%ji", "-9223372036854775808" },
 };
 
 static int test_j(int i)

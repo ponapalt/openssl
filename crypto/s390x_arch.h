@@ -50,7 +50,11 @@ struct OPENSSL_s390xcap_st {
 extern struct OPENSSL_s390xcap_st OPENSSL_s390xcap_P;
 
 /* convert facility bit number or function code to bit mask */
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define S390X_CAPBIT(i)	(1UI64 << (63 - (i) % 64))
+# else
 #  define S390X_CAPBIT(i)	(1ULL << (63 - (i) % 64))
+# endif
 
 # endif
 

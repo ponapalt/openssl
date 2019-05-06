@@ -24,11 +24,19 @@
 
 #define EDWARDS_D       (-39081)
 
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C)     C##UI64
+# elif defined(__arch64__)
+#  define U64(C)     C##UL
+# else
+#  define U64(C)     C##ULL
+# endif
+
 static const curve448_scalar_t precomputed_scalarmul_adjustment = {
     {
         {
-            SC_LIMB(0xc873d6d54a7bb0cfULL), SC_LIMB(0xe933d8d723a70aadULL),
-            SC_LIMB(0xbb124b65129c96fdULL), SC_LIMB(0x00000008335dc163ULL)
+            SC_LIMB(U64(0xc873d6d54a7bb0cf)), SC_LIMB(U64(0xe933d8d723a70aad)),
+            SC_LIMB(U64(0xbb124b65129c96fd)), SC_LIMB(U64(0x00000008335dc163))
         }
     }
 };
