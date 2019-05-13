@@ -166,12 +166,12 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_load_crypto_nodelete)
 # if defined(DSO_WIN32) && !defined(_WIN32_WCE)
     {
         HMODULE handle = NULL;
-        BOOL ret;
+        BOOL ret = TRUE;
 
         /* We don't use the DSO route for WIN32 because there is a better way */
-        ret = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+        /*ret = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
                                 | GET_MODULE_HANDLE_EX_FLAG_PIN,
-                                (void *)&base_inited, &handle);
+                                (void *)&base_inited, &handle);*/
 
 #  ifdef OPENSSL_INIT_DEBUG
         fprintf(stderr, "OPENSSL_INIT: obtained DSO reference? %s\n",
@@ -775,15 +775,15 @@ int OPENSSL_atexit(void (*handler)(void))
 # if defined(DSO_WIN32) && !defined(_WIN32_WCE)
         {
             HMODULE handle = NULL;
-            BOOL ret;
+            BOOL ret = TRUE;
 
             /*
              * We don't use the DSO route for WIN32 because there is a better
              * way
              */
-            ret = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+            /*ret = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
                                     | GET_MODULE_HANDLE_EX_FLAG_PIN,
-                                    handlersym.sym, &handle);
+                                    handlersym.sym, &handle);*/
 
             if (!ret)
                 return 0;
