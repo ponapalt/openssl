@@ -18,7 +18,7 @@
 #include <string.h>
 #include <openssl/crypto.h>
 
-#include "blake2_locl.h"
+#include "blake2_local.h"
 #include "blake2_impl.h"
 
 # if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
