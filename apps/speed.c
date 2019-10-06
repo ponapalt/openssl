@@ -3006,7 +3006,7 @@ int speed_main(int argc, char **argv)
                 pctx = NULL;
             }
             if (kctx == NULL ||      /* keygen ctx is not null */
-                !EVP_PKEY_keygen_init(kctx) /* init keygen ctx */ ) {
+                EVP_PKEY_keygen_init(kctx) <= 0/* init keygen ctx */ ) {
                 ecdh_checks = 0;
                 BIO_printf(bio_err, "ECDH keygen failure.\n");
                 ERR_print_errors(bio_err);
@@ -3014,12 +3014,12 @@ int speed_main(int argc, char **argv)
                 break;
             }
 
-            if (!EVP_PKEY_keygen(kctx, &key_A) || /* generate secret key A */
-                !EVP_PKEY_keygen(kctx, &key_B) || /* generate secret key B */
+            if (EVP_PKEY_keygen(kctx, &key_A) <= 0 || /* generate secret key A */
+                EVP_PKEY_keygen(kctx, &key_B) <= 0 || /* generate secret key B */
                 !(ctx = EVP_PKEY_CTX_new(key_A, NULL)) || /* derivation ctx from skeyA */
-                !EVP_PKEY_derive_init(ctx) || /* init derivation ctx */
-                !EVP_PKEY_derive_set_peer(ctx, key_B) || /* set peer pubkey in ctx */
-                !EVP_PKEY_derive(ctx, NULL, &outlen) || /* determine max length */
+                EVP_PKEY_derive_init(ctx) <= 0 || /* init derivation ctx */
+                EVP_PKEY_derive_set_peer(ctx, key_B) <= 0 || /* set peer pubkey in ctx */
+                EVP_PKEY_derive(ctx, NULL, &outlen) <= 0 || /* determine max length */
                 outlen == 0 ||  /* ensure outlen is a valid size */
                 outlen > MAX_ECDH_SIZE /* avoid buffer overflow */ ) {
                 ecdh_checks = 0;
@@ -3106,8 +3106,8 @@ int speed_main(int argc, char **argv)
 
             if ((ed_pctx = EVP_PKEY_CTX_new_id(test_ed_curves[testnum].nid, NULL))
                     == NULL
-                || !EVP_PKEY_keygen_init(ed_pctx)
-                || !EVP_PKEY_keygen(ed_pctx, &ed_pkey)) {
+                || EVP_PKEY_keygen_init(ed_pctx) <= 0
+                || EVP_PKEY_keygen(ed_pctx, &ed_pkey) <= 0) {
                 st = 0;
                 EVP_PKEY_CTX_free(ed_pctx);
                 break;
