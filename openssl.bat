@@ -2,7 +2,7 @@ call vcvars32
 
 del /f makefile
 
-perl Configure VC-WIN32 no-dynamic-engine no-dso no-hw no-deprecated no-async no-ssl3 no-comp no-weak-ssl-ciphers enable-rc5 enable-rfc3779 enable-capieng enable-chacha enable-poly1305 -static -DWINVER=0x0410 -D_WIN32_WINDOWS=0x0410 -DWIN32_IE=0x0300 -D__FUNCTION__=\\\"\\\" -Zi
+perl Configure VC-WIN32 no-dynamic-engine no-dso no-hw no-deprecated no-async no-ssl3 no-comp no-weak-ssl-ciphers enable-rc5 enable-rfc3779 enable-capieng enable-chacha enable-poly1305 -static -DWINVER=0x0410 -D_WIN32_WINDOWS=0x0410 -D_WIN32_WINNT=0x0400 -DWIN32_IE=0x0300 -D__FUNCTION__=\\\"\\\" -Zi
 
 del /f makefile.orig
 ren makefile makefile.orig
