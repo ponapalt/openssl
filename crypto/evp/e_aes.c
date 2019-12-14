@@ -1135,7 +1135,7 @@ typedef struct {
                 } icv;
                 unsigned char k[32];
             } kmac_param;
-            /* KMAC-AES paramater block - end */
+            /* KMAC-AES parameter block - end */
 
             union {
                 unsigned long long g[2];
