@@ -7,7 +7,27 @@
  https://github.com/openssl/openssl/commits/ and pick the appropriate
  release branch.
 
- Changes between 1.1.1h and 1.1.1i [xx XXX xxxx]
+ Changes between 1.1.1i and 1.1.1j [xx XXX xxxx]
+
+  *)
+
+ Changes between 1.1.1h and 1.1.1i [8 Dec 2020]
+
+  *) Fixed NULL pointer deref in the GENERAL_NAME_cmp function
+     This function could crash if both GENERAL_NAMEs contain an EDIPARTYNAME.
+     If an attacker can control both items being compared  then this could lead
+     to a possible denial of service attack. OpenSSL itself uses the
+     GENERAL_NAME_cmp function for two purposes:
+     1) Comparing CRL distribution point names between an available CRL and a
+        CRL distribution point embedded in an X509 certificate
+     2) When verifying that a timestamp response token signer matches the
+        timestamp authority name (exposed via the API functions
+        TS_RESP_verify_response and TS_RESP_verify_token)
+     (CVE-2020-1971)
+     [Matt Caswell]
+
+  *) Add support for Apple Silicon M1 Macs with the darwin64-arm64-cc target.
+     [Stuart Carnie]
 
   *) The security callback, which can be customised by application code, supports
      the security operation SSL_SECOP_TMP_DH. This is defined to take an EVP_PKEY
@@ -18,6 +38,10 @@
      of the other locations. Therefore this client side call has been changed to
      pass an EVP_PKEY instead.
      [Matt Caswell]
+
+  *) In 1.1.1h, an expired trusted (root) certificate was not anymore rejected
+     when validating a certificate path. This check is restored in 1.1.1i.
+     [David von Oheimb]
 
  Changes between 1.1.1g and 1.1.1h [22 Sep 2020]
 
@@ -44,10 +68,11 @@
      on renegotiation.
      [Tomas Mraz]
 
-  *) The Oracle Developer Studio compiler will start reporting deprecated APIs
+  *) Accidentally, an expired trusted (root) certificate is not anymore rejected
+     when validating a certificate path.
+     [David von Oheimb]
 
-  *) Add support for Apple Silicon M1 Macs with the darwin64-arm64-cc target.
-     [Stuart Carnie]
+  *) The Oracle Developer Studio compiler will start reporting deprecated APIs
 
  Changes between 1.1.1f and 1.1.1g [21 Apr 2020]
 
