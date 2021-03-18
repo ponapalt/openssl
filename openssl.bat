@@ -7,6 +7,6 @@ perl Configure VC-WIN32 zlib no-dynamic-engine no-dso no-hw no-deprecated no-asy
 del /f makefile.orig
 ren makefile makefile.orig
 
-sed -e "s/-D\"UNICODE\" -D\"_UNICODE\"/-DNDEBUG -DSTRICT -D_MBCS -MT/" -e "s/\/WX//" -e "s/\/showIncludes//g" -e "s/\/wd4090//g" -e "s/\/MD/\/MT/g" -e "s/\-static//g" makefile.orig > makefile
+sed -e "s/-D\"UNICODE\" -D\"_UNICODE\"/-DNDEBUG -DSTRICT -D_MBCS -MT/" -e "s/\/WX//" -e "s/\/showIncludes//g" -e "s/\/wd4090//g" -e "s/-Zi/\/Zi \/Oy-/g" -e "s/\/MD/\/MT/g" -e "s/\-static//g" makefile.orig > makefile
 
 nmake /f makefile
