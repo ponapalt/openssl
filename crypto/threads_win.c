@@ -54,15 +54,21 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
         return NULL;
     }
 
+/*
 #  if !defined(_WIN32_WCE)
+*/
     /* 0x400 is the spin count value suggested in the documentation */
+/*
     if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
         OPENSSL_free(lock);
         return NULL;
     }
 #  else
+*/
     InitializeCriticalSection(lock);
+/*
 #  endif
+*/
 # endif
 
     return lock;
@@ -142,8 +148,8 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     do {
         result = InterlockedCompareExchange(lock, ONCE_ININIT, ONCE_UNINITED);
         if (result == ONCE_UNINITED) {
-            init();
             *lock = ONCE_DONE;
+            init();
             return 1;
         }
     } while (result == ONCE_ININIT);
@@ -216,6 +222,7 @@ int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
     return 1;
 }
 
+/*
 int CRYPTO_atomic_or(uint64_t *val, uint64_t op, uint64_t *ret,
                      CRYPTO_RWLOCK *lock)
 {
@@ -249,6 +256,33 @@ int CRYPTO_atomic_load(uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *lock)
     *ret = (uint64_t)InterlockedOr64((LONG64 volatile *)val, 0);
     return 1;
 #endif
+}
+*/
+
+int CRYPTO_atomic_or(uint64_t *val, uint64_t op, uint64_t *ret,
+                     CRYPTO_RWLOCK *lock)
+{
+    if (lock == NULL || !CRYPTO_THREAD_write_lock(lock))
+        return 0;
+
+	*val |= op;
+    *ret  = *val;
+
+    if (!CRYPTO_THREAD_unlock(lock))
+        return 0;
+
+	return 1;
+}
+
+int CRYPTO_atomic_load(uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *lock)
+{
+    if (lock == NULL || !CRYPTO_THREAD_read_lock(lock))
+        return 0;
+    *ret  = *val;
+    if (!CRYPTO_THREAD_unlock(lock))
+        return 0;
+
+    return 1;
 }
 
 int openssl_init_fork_handlers(void)

@@ -19,8 +19,8 @@ typedef long i64;
 typedef unsigned long u64;
 # define U64(C) C##UL
 #else
-typedef long long i64;
-typedef unsigned long long u64;
+typedef __int64 i64;
+typedef unsigned __int64 u64;
 # define U64(C) C##ULL
 #endif
 

@@ -18,7 +18,7 @@ typedef struct prov_ccm_hw_st PROV_CCM_HW;
  */
 typedef struct S390X_kmac_params_st {
     union {
-        unsigned long long g[2];
+        unsigned __int64 g[2];
         unsigned char b[16];
     } icv;
     unsigned char k[32];

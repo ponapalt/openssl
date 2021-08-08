@@ -14,24 +14,24 @@
 #include "word.h"
 #include "point_448.h"
 
-static const c448_word_t MONTGOMERY_FACTOR = (c448_word_t) 0x3bd440fae918bc5ULL;
+static const c448_word_t MONTGOMERY_FACTOR = (c448_word_t) 0x3bd440fae918bc5UI64;
 static const curve448_scalar_t sc_p = {
     {
         {
-            SC_LIMB(0x2378c292ab5844f3ULL), SC_LIMB(0x216cc2728dc58f55ULL),
-            SC_LIMB(0xc44edb49aed63690ULL), SC_LIMB(0xffffffff7cca23e9ULL),
-            SC_LIMB(0xffffffffffffffffULL), SC_LIMB(0xffffffffffffffffULL),
-            SC_LIMB(0x3fffffffffffffffULL)
+            SC_LIMB(0x2378c292ab5844f3UI64), SC_LIMB(0x216cc2728dc58f55UI64),
+            SC_LIMB(0xc44edb49aed63690UI64), SC_LIMB(0xffffffff7cca23e9UI64),
+            SC_LIMB(0xffffffffffffffffUI64), SC_LIMB(0xffffffffffffffffUI64),
+            SC_LIMB(0x3fffffffffffffffUI64)
         }
     }
 }, sc_r2 = {
     {
         {
 
-            SC_LIMB(0xe3539257049b9b60ULL), SC_LIMB(0x7af32c4bc1b195d9ULL),
-            SC_LIMB(0x0d66de2388ea1859ULL), SC_LIMB(0xae17cf725ee4d838ULL),
-            SC_LIMB(0x1a9cc14ba3c47c44ULL), SC_LIMB(0x2052bcb7e4d070afULL),
-            SC_LIMB(0x3402a939f823b729ULL)
+            SC_LIMB(0xe3539257049b9b60UI64), SC_LIMB(0x7af32c4bc1b195d9UI64),
+            SC_LIMB(0x0d66de2388ea1859UI64), SC_LIMB(0xae17cf725ee4d838UI64),
+            SC_LIMB(0x1a9cc14ba3c47c44UI64), SC_LIMB(0x2052bcb7e4d070afUI64),
+            SC_LIMB(0x3402a939f823b729UI64)
         }
     }
 };

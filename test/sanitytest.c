@@ -94,9 +94,9 @@ static int test_sanity_range(void)
             || !TEST_size_t_eq(sizeof(unsigned char), 1))
         return 0;
 
-    /* We want our long longs to be at least 64 bits */
-    if (!TEST_size_t_ge(sizeof(long long int), 8)
-            || !TEST_size_t_ge(sizeof(unsigned long long int), 8))
+    /* We want our __int64s to be at least 64 bits */
+    if (!TEST_size_t_ge(sizeof(__int64), 8)
+            || !TEST_size_t_ge(sizeof(unsigned __int64), 8))
         return 0;
 
     /*

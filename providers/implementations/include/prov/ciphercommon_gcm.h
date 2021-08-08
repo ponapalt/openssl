@@ -29,14 +29,14 @@ typedef struct S390X_kma_params_st {
         unsigned char b[4];
     } cv; /* 32 bit counter value */
     union {
-        unsigned long long g[2];
+        unsigned __int64 g[2];
         unsigned char b[16];
     } t; /* tag */
     unsigned char h[16]; /* hash subkey */
-    unsigned long long taadl; /* total AAD length */
-    unsigned long long tpcl; /* total plaintxt/ciphertxt len */
+    unsigned __int64 taadl; /* total AAD length */
+    unsigned __int64 tpcl; /* total plaintxt/ciphertxt len */
     union {
-        unsigned long long g[2];
+        unsigned __int64 g[2];
         unsigned int w[4];
     } j0;                   /* initial counter value */
     unsigned char k[32];    /* key */

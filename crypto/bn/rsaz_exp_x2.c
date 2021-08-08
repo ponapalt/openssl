@@ -25,8 +25,8 @@ NON_EMPTY_TRANSLATION_UNIT
 
 # if defined(__GNUC__)
 #  define ALIGN64 __attribute__((aligned(64)))
-# elif defined(_MSC_VER)
-#  define ALIGN64 __declspec(align(64))
+/*# elif defined(_MSC_VER)
+#  define ALIGN64 __declspec(align(64))*/
 # else
 #  define ALIGN64
 # endif
