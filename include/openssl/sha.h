@@ -88,7 +88,7 @@ void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
 #  define SHA_LONG64 unsigned long
 #  define U64(C)     C##UL
 # else
-#  define SHA_LONG64 unsigned long long
+#  define SHA_LONG64 unsigned __int64
 #  define U64(C)     C##ULL
 # endif
 

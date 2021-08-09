@@ -24,15 +24,20 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
         return NULL;
     }
 
-# if !defined(_WIN32_WCE)
+/*
+#  if !defined(_WIN32_WCE)
+*/
     /* 0x400 is the spin count value suggested in the documentation */
-    if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
+/*    if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
         OPENSSL_free(lock);
         return NULL;
     }
-# else
+#  else
+*/
     InitializeCriticalSection(lock);
-# endif
+/*
+#  endif
+*/
 
     return lock;
 }
@@ -85,8 +90,8 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     do {
         result = InterlockedCompareExchange(lock, ONCE_ININIT, ONCE_UNINITED);
         if (result == ONCE_UNINITED) {
-            init();
             *lock = ONCE_DONE;
+            init();
             return 1;
         }
     } while (result == ONCE_ININIT);

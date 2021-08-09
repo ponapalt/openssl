@@ -1067,14 +1067,14 @@ typedef struct {
                 unsigned char b[4];
             } cv;
             union {
-                unsigned long long g[2];
+                unsigned __int64 g[2];
                 unsigned char b[16];
             } t;
             unsigned char h[16];
-            unsigned long long taadl;
-            unsigned long long tpcl;
+            unsigned __int64 taadl;
+            unsigned __int64 tpcl;
             union {
-                unsigned long long g[2];
+                unsigned __int64 g[2];
                 unsigned int w[4];
             } j0;
             unsigned char k[32];
@@ -1122,7 +1122,7 @@ typedef struct {
              */
             struct {
                 union {
-                    unsigned long long g[2];
+                    unsigned __int64 g[2];
                     unsigned char b[16];
                 } icv;
                 unsigned char k[32];
@@ -1130,15 +1130,15 @@ typedef struct {
             /* KMAC-AES parameter block - end */
 
             union {
-                unsigned long long g[2];
+                unsigned __int64 g[2];
                 unsigned char b[16];
             } nonce;
             union {
-                unsigned long long g[2];
+                unsigned __int64 g[2];
                 unsigned char b[16];
             } buf;
 
-            unsigned long long blocks;
+            unsigned __int64 blocks;
             int l;
             int m;
             int tls_aad_len;
@@ -1440,7 +1440,7 @@ static int s390x_aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 static int s390x_aes_gcm_aad(S390X_AES_GCM_CTX *ctx, const unsigned char *aad,
                              size_t len)
 {
-    unsigned long long alen;
+    unsigned __int64 alen;
     int n, rem;
 
     if (ctx->kma.param.tpcl)
@@ -1495,7 +1495,7 @@ static int s390x_aes_gcm(S390X_AES_GCM_CTX *ctx, const unsigned char *in,
                          unsigned char *out, size_t len)
 {
     const unsigned char *inptr;
-    unsigned long long mlen;
+    unsigned __int64 mlen;
     union {
         unsigned int w[4];
         unsigned char b[16];
@@ -1657,7 +1657,7 @@ static int s390x_aes_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
             }
             /* Add padding. */
             memset(gctx->iv + arg, 0, len - arg - 8);
-            *((unsigned long long *)(gctx->iv + len - 8)) = arg << 3;
+            *((unsigned __int64 *)(gctx->iv + len - 8)) = arg << 3;
         }
         gctx->ivlen = arg;
         return 1;
@@ -2078,7 +2078,7 @@ static int s390x_aes_ccm(S390X_AES_CCM_CTX *ctx, const unsigned char *in,
     if (enc) {
         /* Two operations per block plus one for tag encryption */
         ctx->aes.ccm.blocks += (((len + 15) >> 4) << 1) + 1;
-        if (ctx->aes.ccm.blocks > (1ULL << 61))
+        if (ctx->aes.ccm.blocks > (1UI64 << 61))
             return -2;		/* too much data */
     }
 

@@ -426,7 +426,7 @@ static void get_current_time(struct timeval *t)
     SystemTimeToFileTime(&st, &now.ft);
     /* re-bias to 1/1/1970 */
 # ifdef  __MINGW32__
-    now.ul -= 116444736000000000ULL;
+    now.ul -= 116444736000000000UI64;
 # else
     /* *INDENT-OFF* */
     now.ul -= 116444736000000000UI64;

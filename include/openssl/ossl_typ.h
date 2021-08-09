@@ -182,7 +182,7 @@ typedef intmax_t ossl_intmax_t;
 typedef uintmax_t ossl_uintmax_t;
 #else
 /*
- * Not long long, because the C-library can only be expected to provide
+ * Not __int64, because the C-library can only be expected to provide
  * strtoll(), strtoull() at the same time as intmax_t and strtoimax(),
  * strtoumax().  Since we use these for parsing arguments, we need the
  * conversion functions, not just the sizes.

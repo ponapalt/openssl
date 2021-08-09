@@ -2281,8 +2281,8 @@ double app_tminterval(int stop, int usertime)
     else {
         struct timeval tv;
         gettimeofday(&tv, NULL);
-        now = (clock_t)((unsigned long long)tv.tv_sec * CLK_TCK +
-                        (unsigned long long)tv.tv_usec * (1000000 / CLK_TCK)
+        now = (clock_t)((unsigned __int64)tv.tv_sec * CLK_TCK +
+                        (unsigned __int64)tv.tv_usec * (1000000 / CLK_TCK)
             );
     }
 # endif

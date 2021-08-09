@@ -162,8 +162,8 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
     long duration;
     extern void s$sleep(long *_duration, short int *_code);
 #  else
-    long long duration;
-    extern void s$sleep2(long long *_duration, short int *_code);
+    __int64 duration;
+    extern void s$sleep2(__int64 *_duration, short int *_code);
 #  endif
 
     bytes_needed = rand_pool_bytes_needed(pool, 4 /*entropy_factor*/);
