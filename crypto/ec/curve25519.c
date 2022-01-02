@@ -770,11 +770,11 @@ static void x25519_scalar_mult(uint8_t out[32], const uint8_t scalar[32],
  */
 typedef int32_t fe[10];
 
-static const int64_t kBottom21Bits =  0x1fffffLL;
-static const int64_t kBottom25Bits = 0x1ffffffLL;
-static const int64_t kBottom26Bits = 0x3ffffffLL;
-static const int64_t kTop39Bits = 0xfffffffffe000000LL;
-static const int64_t kTop38Bits = 0xfffffffffc000000LL;
+static const int64_t kBottom21Bits =  0x1fffffI64;
+static const int64_t kBottom25Bits = 0x1ffffffI64;
+static const int64_t kBottom26Bits = 0x3ffffffI64;
+static const int64_t kTop39Bits = 0xfffffffffe000000I64;
+static const int64_t kTop38Bits = 0xfffffffffc000000I64;
 
 static uint64_t load_3(const uint8_t *in)
 {

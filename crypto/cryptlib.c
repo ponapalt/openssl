@@ -26,6 +26,9 @@
 #  define alloca _alloca
 # endif
 
+//for old API compat : just return 0
+#undef _WIN32_WINNT
+
 # if defined(_WIN32_WINNT) && _WIN32_WINNT>=0x0333
 #  ifdef OPENSSL_SYS_WIN_CORE
 

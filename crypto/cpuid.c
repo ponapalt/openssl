@@ -28,7 +28,7 @@ extern unsigned int OPENSSL_ia32cap_P[4];
  * subroutines.
  */
 #  ifdef _WIN32
-typedef WCHAR variant_char;
+typedef CHAR variant_char;
 
 static variant_char *ossl_getenv(const char *name)
 {
@@ -37,8 +37,9 @@ static variant_char *ossl_getenv(const char *name)
      * to just ignore |name| and use equivalent wide-char L-literal.
      * As well as to ignore excessively long values...
      */
-    static WCHAR value[48];
-    DWORD len = GetEnvironmentVariableW(L"OPENSSL_ia32cap", value, 48);
+    static CHAR value[49];
+    DWORD len = GetEnvironmentVariableA(L"OPENSSL_ia32cap", value, 48);
+	value[48] = 0;
 
     return (len > 0 && len < 48) ? value : NULL;
 }

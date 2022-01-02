@@ -163,7 +163,7 @@
 #define RC5_32_P        0xB7E15163L
 #define RC5_32_Q        0x9E3779B9L
 #define RC5_64_P        0xB7E151628AED2A6BLL
-#define RC5_64_Q        0x9E3779B97F4A7C15LL
+#define RC5_64_Q        0x9E3779B97F4A7C15I64
 
 #define E_RC5_32(a,b,s,n) \
         a^=b; \

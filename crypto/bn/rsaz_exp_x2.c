@@ -26,8 +26,8 @@ NON_EMPTY_TRANSLATION_UNIT
 
 # if defined(__GNUC__)
 #  define ALIGN1  __attribute__((aligned(1)))
-# elif defined(_MSC_VER)
-#  define ALIGN1  __declspec(align(1))
+/*# elif defined(_MSC_VER)
+#  define ALIGN1  __declspec(align(1))*/
 # else
 #  define ALIGN1
 # endif

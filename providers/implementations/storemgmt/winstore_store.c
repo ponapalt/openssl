@@ -86,7 +86,7 @@ static void *winstore_open(void *provctx, const char *uri)
         return NULL;
 
     ctx->provctx    = provctx;
-    ctx->win_store  = CertOpenSystemStoreW(0, L"ROOT");
+    ctx->win_store  = CertOpenSystemStoreA(0, "ROOT");
     if (ctx->win_store == NULL) {
         OPENSSL_free(ctx);
         return NULL;

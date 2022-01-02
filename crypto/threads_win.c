@@ -54,15 +54,21 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
         /* Don't set error, to avoid recursion blowup. */
         return NULL;
 
+/*
 #  if !defined(_WIN32_WCE)
+*/
     /* 0x400 is the spin count value suggested in the documentation */
+/*
     if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
         OPENSSL_free(lock);
         return NULL;
     }
 #  else
+*/
     InitializeCriticalSection(lock);
+/*
 #  endif
+*/
 # endif
 
     return lock;
@@ -142,8 +148,8 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     do {
         result = InterlockedCompareExchange(lock, ONCE_ININIT, ONCE_UNINITED);
         if (result == ONCE_UNINITED) {
-            init();
             *lock = ONCE_DONE;
+            init();
             return 1;
         }
     } while (result == ONCE_ININIT);
@@ -216,6 +222,7 @@ int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
     return 1;
 }
 
+/*
 int CRYPTO_atomic_or(uint64_t *val, uint64_t op, uint64_t *ret,
                      CRYPTO_RWLOCK *lock)
 {
@@ -249,6 +256,81 @@ int CRYPTO_atomic_load(uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *lock)
     *ret = (uint64_t)InterlockedOr64((LONG64 volatile *)val, 0);
     return 1;
 #endif
+}
+*/
+
+__forceinline char InterlockedCompareExchange64Bool(volatile uint64_t *dest, uint64_t newval, uint64_t oldval)
+{
+	DWORD oldv_low;
+	DWORD oldv_high;
+	DWORD newv_low;
+	DWORD newv_high;
+	char result;
+
+	oldv_low  = (DWORD)(oldval & 0xFFFFFFFFUi64);
+	oldv_high = (DWORD)(oldval >> 32);
+
+	newv_low  = (DWORD)(newval & 0xFFFFFFFFUi64);
+	newv_high = (DWORD)(newval >> 32);
+	
+	result = 0;
+
+	__asm
+	{
+		mov eax,oldv_low
+		mov edx,oldv_high
+		mov ebx,newv_low
+		mov ecx,newv_high
+		mov esi,dest
+
+		lock cmpxchg8b qword ptr [esi]
+
+		setz result
+	}
+
+	return result;
+}
+
+int CRYPTO_atomic_or(uint64_t *val_arg, uint64_t op, uint64_t *ret,
+                     CRYPTO_RWLOCK *lock)
+{
+	//*val |= op and *ret = result
+
+	uint64_t valold,valnew;
+	volatile uint64_t* val;
+
+	val = (volatile uint64_t*)val_arg;
+
+	do {
+		valold = *val;
+		valnew = valold;
+
+		valnew |= op;
+	}
+	while ( ! InterlockedCompareExchange64Bool(val,valnew,valold) );
+
+	*ret = valnew;
+
+	return 1;
+}
+
+int CRYPTO_atomic_load(uint64_t *val_arg, uint64_t *ret, CRYPTO_RWLOCK *lock)
+{
+    //*ret  = *val;
+
+	uint64_t valnew;
+	volatile uint64_t* val;
+
+	val = (volatile uint64_t*)val_arg;
+
+	do {
+		valnew = *val;
+	}
+	while ( ! InterlockedCompareExchange64Bool(val,valnew,valnew) );
+
+	*ret = valnew;
+
+	return 1;
 }
 
 int openssl_init_fork_handlers(void)

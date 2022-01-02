@@ -7,6 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
+#include <stdint.h>
+
 #include "internal/quic_cc.h"
 
 typedef struct ossl_cc_dummy_st {

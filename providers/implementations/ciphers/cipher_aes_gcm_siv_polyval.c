@@ -14,6 +14,8 @@
  */
 #include "internal/deprecated.h"
 
+#include <stdint.h>
+
 #include <openssl/evp.h>
 #include <internal/endian.h>
 #include <prov/implementations.h>

@@ -10,6 +10,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <assert.h>
+#include <stdint.h>
 #include "internal/priority_queue.h"
 #include "internal/safe_math.h"
 

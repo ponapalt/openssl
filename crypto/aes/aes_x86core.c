@@ -87,7 +87,7 @@ typedef unsigned __int64 u64;
 typedef unsigned long u64;
 #define U64(C)  C##UL
 #else
-typedef unsigned long long u64;
+typedef unsigned __int64 u64;
 #define U64(C)  C##ULL
 #endif
 

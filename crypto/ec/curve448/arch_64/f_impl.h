@@ -30,7 +30,7 @@ void gf_add_RAW(gf out, const gf a, const gf b)
 
 void gf_sub_RAW(gf out, const gf a, const gf b)
 {
-    uint64_t co1 = ((1ULL << 56) - 1) * 2, co2 = co1 - 2;
+    uint64_t co1 = ((1UI64 << 56) - 1) * 2, co2 = co1 - 2;
     unsigned int i;
 
     for (i = 0; i < NLIMBS; i++)
@@ -45,7 +45,7 @@ void gf_bias(gf a, int amt)
 
 void gf_weak_reduce(gf a)
 {
-    uint64_t mask = (1ULL << 56) - 1;
+    uint64_t mask = (1UI64 << 56) - 1;
     uint64_t tmp = a->limb[NLIMBS - 1] >> 56;
     unsigned int i;
 

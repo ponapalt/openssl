@@ -142,8 +142,8 @@ static struct testdata tbl_testdata_pos_64bit[] = {
 
 /* ASSUMES SIGNED TIME_T */
 static struct testdata tbl_testdata_neg_64bit[] = {
-    { "19011213204551Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2147483649LL, -1, 0, },
-    { "19000101120000Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2208945600LL, -1, 0, },
+    { "19011213204551Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2147483649I64, -1, 0, },
+    { "19000101120000Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2208945600I64, -1, 0, },
 };
 
 /* A baseline time to compare to */

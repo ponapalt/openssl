@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <openssl/opensslconf.h>
 #include <internal/priority_queue.h>
