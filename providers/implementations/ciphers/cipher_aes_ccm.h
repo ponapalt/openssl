@@ -29,13 +29,13 @@ typedef struct prov_aes_ccm_ctx_st {
 #if defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
         struct {
             S390X_KMAC_PARAMS kmac;
-            unsigned long long blocks;
+            uint64_t blocks;
             union {
-                unsigned long long g[2];
+                uint64_t g[2];
                 unsigned char b[AES_BLOCK_SIZE];
             } nonce;
             union {
-                unsigned long long g[2];
+                uint64_t g[2];
                 unsigned char b[AES_BLOCK_SIZE];
             } buf;
             unsigned char dummy_pad[168];

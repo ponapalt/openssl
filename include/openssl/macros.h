@@ -369,7 +369,11 @@
 #if defined(__GNUC__)
 #define OSSL_CRYPTO_ALLOC __attribute__((__malloc__))
 #elif defined(_MSC_VER)
+#if _MSC_VER >= 1400
 #define OSSL_CRYPTO_ALLOC __declspec(restrict)
+#else
+#define OSSL_CRYPTO_ALLOC
+#endif
 #else
 #define OSSL_CRYPTO_ALLOC
 #endif

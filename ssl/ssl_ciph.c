@@ -303,6 +303,7 @@ int ssl_load_ciphers(SSL_CTX *ctx)
     const ssl_cipher_table *t;
     EVP_KEYEXCH *kex = NULL;
     EVP_SIGNATURE *sig = NULL;
+    const EVP_MD *md;
 
     ctx->disabled_enc_mask = 0;
     for (i = 0, t = ssl_cipher_table_cipher; i < SSL_ENC_NUM_IDX; i++, t++) {
@@ -323,7 +324,7 @@ int ssl_load_ciphers(SSL_CTX *ctx)
          * if these algorithms are not available.
          */
         ERR_set_mark();
-        const EVP_MD *md = EVP_MD_fetch(ctx->libctx,
+        md = EVP_MD_fetch(ctx->libctx,
             OBJ_nid2sn(t->nid),
             ctx->propq);
         ERR_pop_to_mark();
