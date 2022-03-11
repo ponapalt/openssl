@@ -343,7 +343,7 @@ static int test_simulate(void)
 
     fake_time = TIME_BASE;
 
-    if (!TEST_ptr(cc = ccm->new(fake_now, NULL)))
+    if (!TEST_ptr(cc = ccm->new (fake_now, NULL)))
         goto err;
 
     if (!TEST_true(net_sim_init(&sim, ccm, cc, actual_capacity, 100)))
@@ -446,11 +446,11 @@ static int test_simulate(void)
     {
         uint64_t estimated_capacity = cwnd_sample_sum / cwnd_sample_count;
 
-        double error = ((double)estimated_capacity / (double)actual_capacity) - 1.0;
+        double error = ((double)(int64_t)estimated_capacity / (double)(int64_t)actual_capacity) - 1.0;
 
         TEST_info("est = %6llu kB/s, act=%6llu kB/s (error=%.02f%%)\n",
-            (unsigned long long)estimated_capacity,
-            (unsigned long long)actual_capacity,
+            (uint64_t)estimated_capacity,
+            (uint64_t)actual_capacity,
             error * 100.0);
 
         /* Max 5% error */

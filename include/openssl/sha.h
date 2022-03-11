@@ -105,7 +105,7 @@ typedef unsigned __int64 SHA_LONG64;
 #elif defined(__arch64__)
 typedef unsigned long SHA_LONG64;
 #else
-typedef unsigned long long SHA_LONG64;
+typedef unsigned __int64 SHA_LONG64;
 #endif
 
 typedef struct SHA512state_st {

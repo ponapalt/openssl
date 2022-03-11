@@ -1953,9 +1953,9 @@ out:
 
                 TEST_info("client side is closed: %llu(%s)/%llu(%s), "
                           "%s, %s, reason: \"%s\"",
-                    (unsigned long long)cc_info.error_code,
+                    (uint64_t)cc_info.error_code,
                     e_str,
-                    (unsigned long long)cc_info.frame_type,
+                    (uint64_t)cc_info.frame_type,
                     f_str,
                     (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) != 0
                         ? "local"
@@ -1981,9 +1981,9 @@ out:
 
             TEST_info("server side is closed: %llu(%s)/%llu(%s), "
                       "%s, %s, reason: \"%s\"",
-                (unsigned long long)tcause->error_code,
+                (uint64_t)tcause->error_code,
                 e_str,
-                (unsigned long long)tcause->frame_type,
+                (uint64_t)tcause->frame_type,
                 f_str,
                 tcause->remote ? "remote" : "local",
                 tcause->app ? "app" : "transport",

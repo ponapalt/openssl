@@ -292,6 +292,7 @@ static int test_multiname_selfsigned(void)
     X509_VERIFY_PARAM *vpm = NULL;
     int fails = 0;
     int ret = 0;
+    size_t i, j;
 
     if (!TEST_ptr((cert = X509_from_strings(multiname_cert))))
         goto err;
@@ -313,7 +314,7 @@ static int test_multiname_selfsigned(void)
 
     X509_VERIFY_PARAM_set_time(vpm, multiname_valid_at);
 
-    for (size_t i = 0; multiname_dnsnames[i] != NULL; i++) {
+    for (i = 0; multiname_dnsnames[i] != NULL; i++) {
         /* Try one not in the certificate */
         if (!TEST_true(X509_VERIFY_PARAM_set1_host(vpm, "bunsen.muppetry.ca", 0)))
             goto err;
@@ -340,7 +341,7 @@ static int test_multiname_selfsigned(void)
             fails++;
         }
         X509_STORE_CTX_cleanup(ctx);
-        for (size_t j = 0; multiname_dnsnames[j] != NULL; j++) {
+        for (j = 0; multiname_dnsnames[j] != NULL; j++) {
             if (j != i) {
                 if (!TEST_true(X509_VERIFY_PARAM_add1_host(vpm, multiname_dnsnames[j], 0)))
                     goto err;
@@ -379,7 +380,7 @@ static int test_multiname_selfsigned(void)
             goto err;
     }
 
-    for (size_t i = 0; multiname_emails[i] != NULL; i++) {
+    for (i = 0; multiname_emails[i] != NULL; i++) {
         /* Try one not in the certificate */
         if (!TEST_true(X509_VERIFY_PARAM_set1_email(vpm, "bunsen@muppetry.ca", 0)))
             goto err;
@@ -406,7 +407,7 @@ static int test_multiname_selfsigned(void)
             fails++;
         }
         X509_STORE_CTX_cleanup(ctx);
-        for (size_t j = 0; multiname_emails[j] != NULL; j++) {
+        for (j = 0; multiname_emails[j] != NULL; j++) {
             if (j != i) {
                 if (!TEST_true(X509_VERIFY_PARAM_add1_rfc822(vpm, multiname_emails[j], 0)))
                     goto err;
@@ -424,7 +425,7 @@ static int test_multiname_selfsigned(void)
             goto err;
     }
 
-    for (size_t i = 0; multiname_ips[i] != NULL; i++) {
+    for (i = 0; multiname_ips[i] != NULL; i++) {
         /* Try one not in the certificate */
         if (!TEST_true(X509_VERIFY_PARAM_set1_ip_asc(vpm, "8.8.8.8")))
             goto err;
@@ -451,7 +452,7 @@ static int test_multiname_selfsigned(void)
             fails++;
         }
         X509_STORE_CTX_cleanup(ctx);
-        for (size_t j = 0; multiname_ips[j] != NULL; j++) {
+        for (j = 0; multiname_ips[j] != NULL; j++) {
             if (j != i) {
                 if (!TEST_true(X509_VERIFY_PARAM_add1_ip_asc(vpm, multiname_ips[j])))
                     goto err;
@@ -562,6 +563,7 @@ static int test_vpm_input_validation(void)
     const char *rfc822mail = "beaker@muppetry.ca";
     X509_VERIFY_PARAM *vpm = NULL;
     int ret = 0;
+    size_t i;
 
     if (!TEST_ptr(vpm = X509_VERIFY_PARAM_new()))
         goto err;
@@ -579,19 +581,19 @@ static int test_vpm_input_validation(void)
     if (!TEST_true(X509_VERIFY_PARAM_set1_email(vpm, utf8mail, 0)))
         goto err;
 
-    for (size_t i = 0; multiname_dnsnames[i] != NULL; i++) {
+    for (i = 0; multiname_dnsnames[i] != NULL; i++) {
         if (!TEST_true(X509_VERIFY_PARAM_set1_host(vpm, multiname_dnsnames[i], 0)))
             goto err;
         if (!TEST_false(X509_VERIFY_PARAM_set1_email(vpm, multiname_dnsnames[i], 0)))
             goto err;
     }
-    for (size_t i = 0; multiname_emails[i] != NULL; i++) {
+    for (i = 0; multiname_emails[i] != NULL; i++) {
         if (!TEST_true(X509_VERIFY_PARAM_set1_email(vpm, multiname_emails[i], 0)))
             goto err;
         if (!TEST_false(X509_VERIFY_PARAM_set1_host(vpm, multiname_emails[i], 0)))
             goto err;
     }
-    for (size_t i = 0; multiname_ips[i] != NULL; i++) {
+    for (i = 0; multiname_ips[i] != NULL; i++) {
         size_t l = strlen(multiname_ips[i]);
         if (!TEST_true(X509_VERIFY_PARAM_set1_ip_asc(vpm, multiname_ips[i])))
             goto err;
@@ -608,7 +610,7 @@ static int test_vpm_input_validation(void)
     X509_VERIFY_PARAM_set1_rfc822_input_validation(vpm, yolo_name_validation);
     X509_VERIFY_PARAM_set1_smtputf8_input_validation(vpm, yolo_name_validation);
     X509_VERIFY_PARAM_set1_ip_input_validation(vpm, yolo_ip_validation);
-    for (size_t i = 0; multiname_dnsnames[i] != NULL; i++) {
+    for (i = 0; multiname_dnsnames[i] != NULL; i++) {
         /* should still work */
         if (!TEST_true(X509_VERIFY_PARAM_set1_host(vpm, multiname_dnsnames[i], 0)))
             goto err;
@@ -616,7 +618,7 @@ static int test_vpm_input_validation(void)
         if (!TEST_true(X509_VERIFY_PARAM_set1_email(vpm, multiname_dnsnames[i], 0)))
             goto err;
     }
-    for (size_t i = 0; multiname_emails[i] != NULL; i++) {
+    for (i = 0; multiname_emails[i] != NULL; i++) {
         /* should still work */
         if (!TEST_true(X509_VERIFY_PARAM_set1_email(vpm, multiname_emails[i], 0)))
             goto err;
@@ -624,7 +626,7 @@ static int test_vpm_input_validation(void)
         if (!TEST_true(X509_VERIFY_PARAM_set1_host(vpm, multiname_emails[i], 0)))
             goto err;
     }
-    for (size_t i = 0; multiname_ips[i] != NULL; i++) {
+    for (i = 0; multiname_ips[i] != NULL; i++) {
         if (!TEST_true(X509_VERIFY_PARAM_set1_ip_asc(vpm, multiname_ips[i])))
             goto err;
         /* should be accepted now */
