@@ -274,10 +274,12 @@ static void alg_cleanup(ossl_uintmax_t idx, ALGORITHM *a, void *arg)
 
 static void stored_algs_free(STORED_ALGORITHMS *sa)
 {
+    int i;
+
     if (sa == NULL)
         return;
 
-    for (int i = 0; i < NUM_SHARDS; ++i) {
+    for (i = 0; i < NUM_SHARDS; ++i) {
         ossl_sa_ALGORITHM_doall_arg(sa[i].algs, &alg_cleanup, &sa[i]);
         ossl_sa_ALGORITHM_free(sa[i].algs);
         ossl_cache_lists_free(&sa[i]);
@@ -291,12 +293,13 @@ static void stored_algs_free(STORED_ALGORITHMS *sa)
 static STORED_ALGORITHMS *stored_algs_new(OSSL_LIB_CTX *ctx)
 {
     STORED_ALGORITHMS *ret;
+    int i;
 
     ret = OPENSSL_calloc(NUM_SHARDS, sizeof(STORED_ALGORITHMS));
     if (ret == NULL)
         return NULL;
 
-    for (int i = 0; i < NUM_SHARDS; ++i) {
+    for (i = 0; i < NUM_SHARDS; ++i) {
         ret[i].algs = ossl_sa_ALGORITHM_new();
         if (ret[i].algs == NULL)
             goto err;
@@ -623,8 +626,9 @@ int ossl_method_store_remove_all_provided(OSSL_METHOD_STORE *store,
     const OSSL_PROVIDER *prov)
 {
     struct alg_cleanup_by_provider_data_st data;
+    int k;
 
-    for (int k = 0; k < NUM_SHARDS; ++k) {
+    for (k = 0; k < NUM_SHARDS; ++k) {
         STORED_ALGORITHMS *sa = &store->algs[k];
 
         if (!ossl_property_write_lock(sa))
@@ -668,7 +672,7 @@ void ossl_method_store_do_all(OSSL_METHOD_STORE *store,
     void (*fn)(int id, void *method, void *fnarg),
     void *fnarg)
 {
-    int i, j;
+    int i, j, k;
     int numalgs, numimps;
     STACK_OF(ALGORITHM) *tmpalgs;
     ALGORITHM *alg;
@@ -676,7 +680,7 @@ void ossl_method_store_do_all(OSSL_METHOD_STORE *store,
     if (store == NULL)
         return;
 
-    for (int k = 0; k < NUM_SHARDS; ++k) {
+    for (k = 0; k < NUM_SHARDS; ++k) {
         STORED_ALGORITHMS *sa = &store->algs[k];
 
         if (!ossl_property_read_lock(sa))
@@ -925,7 +929,9 @@ static void ossl_cache_lists_free(STORED_ALGORITHMS *sa)
 
 int ossl_method_store_cache_flush_all(OSSL_METHOD_STORE *store)
 {
-    for (int i = 0; i < NUM_SHARDS; ++i) {
+    int i;
+
+    for (i = 0; i < NUM_SHARDS; ++i) {
         STORED_ALGORITHMS *sa = &store->algs[i];
 
         if (!ossl_property_write_lock(sa))

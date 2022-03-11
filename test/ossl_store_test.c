@@ -300,12 +300,13 @@ static int test_store_attach_invalid_params(void)
 {
     const unsigned char input[] = { 0 };
     char invalid_expect[] = "invalid";
-    OSSL_PARAM params[] = {
-        OSSL_PARAM_construct_utf8_string(OSSL_STORE_PARAM_EXPECT, invalid_expect, 0),
-        OSSL_PARAM_END
-    };
+    OSSL_PARAM params[2];
     BIO *bio = NULL;
     int ret = 0;
+
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_STORE_PARAM_EXPECT,
+        invalid_expect, 0);
+    params[1] = OSSL_PARAM_construct_end();
 
     if (!TEST_ptr(bio = BIO_new_mem_buf(input, sizeof(input))))
         goto err;
