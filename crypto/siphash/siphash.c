@@ -125,10 +125,10 @@ int SipHash_Init(SIPHASH *ctx, const unsigned char *k, int crounds, int drounds)
     ctx->len = 0;
     ctx->total_inlen = 0;
 
-    ctx->v0 = 0x736f6d6570736575ULL ^ k0;
-    ctx->v1 = 0x646f72616e646f6dULL ^ k1;
-    ctx->v2 = 0x6c7967656e657261ULL ^ k0;
-    ctx->v3 = 0x7465646279746573ULL ^ k1;
+    ctx->v0 = 0x736f6d6570736575UI64 ^ k0;
+    ctx->v1 = 0x646f72616e646f6dUI64 ^ k1;
+    ctx->v2 = 0x6c7967656e657261UI64 ^ k0;
+    ctx->v3 = 0x7465646279746573UI64 ^ k1;
 
     if (ctx->hash_size == SIPHASH_MAX_DIGEST_SIZE)
         ctx->v1 ^= 0xee;
