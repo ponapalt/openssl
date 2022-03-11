@@ -152,14 +152,14 @@ typedef struct j_data_st {
 } j_data;
 
 static j_data jf_data[] = {
-    { 0xffffffffffffffffULL, "%ju", "18446744073709551615" },
-    { 0xffffffffffffffffULL, "%jx", "ffffffffffffffff" },
-    { 0x8000000000000000ULL, "%ju", "9223372036854775808" },
+    { 0xffffffffffffffffUI64, "%ju", "18446744073709551615" },
+    { 0xffffffffffffffffUI64, "%jx", "ffffffffffffffff" },
+    { 0x8000000000000000UI64, "%ju", "9223372036854775808" },
     /*
      * These tests imply two's complement, but it's the only binary
      * representation we support, see test/sanitytest.c...
      */
-    { 0x8000000000000000ULL, "%ji", "-9223372036854775808" },
+    { 0x8000000000000000UI64, "%ji", "-9223372036854775808" },
 };
 
 static int test_j(int i)

@@ -78,7 +78,7 @@
  * produces code that is 2 times faster than system compilers for the big
  * number stuff. For machines with only one compiler (or shared libraries),
  * this should be on.  Again this in only really a problem on machines using
- * "long long's", are 32bit, and are not using my assembler code.
+ * "__int64's", are 32bit, and are not using my assembler code.
  */
 # if defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_WINDOWS) || \
     defined(OPENSSL_SYS_WIN32) || defined(linux)
@@ -89,7 +89,7 @@
  * 64-bit processor with LP64 ABI
  */
 # ifdef SIXTY_FOUR_BIT_LONG
-#  define BN_ULLONG       unsigned long long
+#  define BN_ULLONG       unsigned __int64
 #  define BN_BITS4        32
 #  define BN_MASK2        (0xffffffffffffffffL)
 #  define BN_MASK2l       (0xffffffffL)
@@ -108,11 +108,11 @@
 #  undef BN_LLONG
 #  undef BN_ULLONG
 #  define BN_BITS4        32
-#  define BN_MASK2        (0xffffffffffffffffLL)
+#  define BN_MASK2        (0xffffffffffffffffI64)
 #  define BN_MASK2l       (0xffffffffL)
-#  define BN_MASK2h       (0xffffffff00000000LL)
-#  define BN_MASK2h1      (0xffffffff80000000LL)
-#  define BN_DEC_CONV     (10000000000000000000ULL)
+#  define BN_MASK2h       (0xffffffff00000000I64)
+#  define BN_MASK2h1      (0xffffffff80000000I64)
+#  define BN_DEC_CONV     (10000000000000000000UI64)
 #  define BN_DEC_NUM      19
 #  define BN_DEC_FMT1     "%llu"
 #  define BN_DEC_FMT2     "%019llu"
@@ -123,7 +123,7 @@
 #   if defined(_WIN32) && !defined(__GNUC__)
 #    define BN_ULLONG     unsigned __int64
 #   else
-#    define BN_ULLONG     unsigned long long
+#    define BN_ULLONG     unsigned __int64
 #   endif
 #  endif
 #  define BN_BITS4        16
@@ -475,7 +475,7 @@ unsigned __int64 _umul128(unsigned __int64 a, unsigned __int64 b,
 
 # ifdef BN_LLONG
 /*******************************************************************
- * Using the long long type, has to be twice as wide as BN_ULONG...
+ * Using the __int64 type, has to be twice as wide as BN_ULONG...
  */
 #  define Lw(t)    (((BN_ULONG)(t))&BN_MASK2)
 #  define Hw(t)    (((BN_ULONG)((t)>>BN_BITS2))&BN_MASK2)
@@ -560,7 +560,7 @@ unsigned __int64 _umul128(unsigned __int64 a, unsigned __int64 b,
 
 # else
 /*************************************************************
- * No long long type
+ * No __int64 type
  */
 
 #  define LBITS(a)        ((a)&BN_MASK2l)
