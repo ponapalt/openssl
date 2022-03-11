@@ -385,7 +385,7 @@ static void reader_fn(int *iterations)
         val = (valp == NULL) ? 0 : *valp;
 
         if (oldval > val) {
-            TEST_info("rcu torture value went backwards! %llu : %llu", (unsigned long long)oldval, (unsigned long long)val);
+            TEST_info("rcu torture value went backwards! %llu : %llu", (uint64_t)oldval, (uint64_t)val);
             rcu_torture_result = 0;
         }
         oldval = val; /* just try to deref the pointer */

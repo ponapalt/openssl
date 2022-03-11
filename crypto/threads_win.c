@@ -24,7 +24,8 @@
  */
 
 #if ((defined(_MSC_VER) && defined(_M_IX86) && _MSC_VER <= 1600) || (defined(__MINGW32__) && !defined(__MINGW64__)))
-# define NO_INTERLOCKEDOR64
+# undef NO_INTERLOCKEDOR64
+# define CRYPTO_ST_NO_INTERLOCKEDOR64
 #endif
 
 #include <openssl/crypto.h>
@@ -195,6 +196,123 @@ void ossl_rcu_lock_free(CRYPTO_RCU_LOCK *lock)
     OPENSSL_free(lock);
 }
 
+#ifdef CRYPTO_ST_NO_INTERLOCKEDOR64
+
+#undef InterlockedExchange64
+#define InterlockedExchange64 crypto_st_InterlockedExchange64
+
+static int64_t crypto_st_InterlockedExchange64(volatile int64_t *target, int64_t value)
+{
+    int64_t old_value;
+    __asm {
+        mov esi, target           ; Load the address of target into ESI
+        mov ebx, dword ptr [value]; Load the lower 32 bits of value into EBX
+        mov ecx, dword ptr [value + 4]; Load the upper 32 bits of value into ECX
+    retry:
+        ; Load the value of target into EDX:EAX (atomically)
+        mov eax, dword ptr [esi]
+        mov edx, dword ptr [esi + 4]
+
+        ; Compare the value of EDX:EAX with target and exchange it with the new value
+        lock cmpxchg8b qword ptr [esi]
+
+        ; Check if the exchange was successful
+        ; As a result of cmpxchg8b, EAX:EDX will be set to the current value of target
+        ; If they do not match, retry
+        jne retry
+
+        ; Store the value before the exchange into old_value
+        mov dword ptr [old_value], eax
+        mov dword ptr [old_value + 4], edx
+    }
+    return old_value;
+}
+
+#undef InterlockedCompareExchange64
+#define InterlockedCompareExchange64 crypto_st_InterlockedCompareExchange64
+
+static int64_t crypto_st_InterlockedCompareExchange64(volatile int64_t* destination, int64_t exchange, int64_t comperand) {
+    int64_t old_value;
+    __asm {
+        mov esi, destination            ; Load the address of destination into ESI
+        mov eax, dword ptr [comperand]  ; Load the lower 32 bits of comperand into EAX
+        mov edx, dword ptr [comperand + 4]; Load the upper 32 bits of comperand into EDX
+        mov ebx, dword ptr [exchange]   ; Load the lower 32 bits of exchange into EBX
+        mov ecx, dword ptr [exchange + 4]; Load the upper 32 bits of exchange into ECX
+
+        ; Compare the value of destination with EAX:EDX and exchange it with the value of exchange
+        lock cmpxchg8b qword ptr [esi]
+
+        ; Store the value before the exchange into old_value
+        mov dword ptr [old_value], eax
+        mov dword ptr [old_value + 4], edx
+    }
+    return old_value;
+}
+
+#undef InterlockedAdd64
+#define InterlockedAdd64 crypto_st_InterlockedAdd64
+
+static int64_t crypto_st_InterlockedAdd64(int64_t volatile *Addend, int64_t Value) {
+    int64_t Old,New,Current;
+
+    do {
+        Old = *Addend;
+        New = Old + Value;
+        Current = InterlockedCompareExchange64(Addend, New, Old);
+    } while (Current != Old);
+
+    return New;
+}
+
+#undef InterlockedAnd64
+#define InterlockedAnd64 crypto_st_InterlockedAnd64
+
+static int64_t crypto_st_InterlockedAnd64(int64_t volatile *Destination, int64_t Value) {
+    int64_t Old,New,Current;
+
+    do {
+        Old = *Destination;
+        New = Old & Value;
+        Current = InterlockedCompareExchange64(Destination, New, Old);
+    } while (Current != Old);
+
+    return New;
+}
+
+#undef InterlockedOr64
+#define InterlockedOr64 crypto_st_InterlockedOr64
+
+static int64_t crypto_st_InterlockedOr64(int64_t volatile *Destination, int64_t Value) {
+    int64_t Old,New,Current;
+
+    do {
+        Old = *Destination;
+        New = Old | Value;
+        Current = InterlockedCompareExchange64(Destination, New, Old);
+    } while (Current != Old);
+
+    return New;
+}
+
+#undef InterlockedOr
+#define InterlockedOr crypto_st_InterlockedOr
+
+static int32_t crypto_st_InterlockedOr(int32_t volatile* target, int32_t value) {
+    int32_t oldValue, newValue;
+    do {
+        // Get the current value of *target
+        oldValue = *target;
+        // Compute the new value by ORing the old value with the input value
+        newValue = oldValue | value;
+        // Try to set *target to the new value if it is still equal to the old value
+    } while (InterlockedCompareExchange(target, newValue, oldValue) != oldValue);
+    // Return the old value that was ORed
+    return oldValue;
+}
+
+#endif //CRYPTO_ST_NO_INTERLOCKEDOR64
+
 /* Read side acquisition of the current qp */
 static ossl_inline struct rcu_qp *get_hold_current_qp(CRYPTO_RCU_LOCK *lock)
 {
@@ -206,14 +324,14 @@ static ossl_inline struct rcu_qp *get_hold_current_qp(CRYPTO_RCU_LOCK *lock)
     for (;;) {
         CRYPTO_atomic_load_int((int *)&lock->reader_idx, (int *)&qp_idx,
                                lock->rw_lock);
-        CRYPTO_atomic_add64(&lock->qp_group[qp_idx].users, (uint64_t)1, &tmp64,
-                            lock->rw_lock);
+        CRYPTO_atomic_add64((uint64_t *)&lock->qp_group[qp_idx].users,
+                            (uint64_t)1, &tmp64, lock->rw_lock);
         CRYPTO_atomic_load_int((int *)&lock->reader_idx, (int *)&tmp,
                                lock->rw_lock);
         if (qp_idx == tmp)
             break;
-        CRYPTO_atomic_add64(&lock->qp_group[qp_idx].users, (uint64_t)-1, &tmp64,
-                            lock->rw_lock);
+        CRYPTO_atomic_add64((uint64_t *)&lock->qp_group[qp_idx].users,
+                            (uint64_t)-1, &tmp64, lock->rw_lock);
     }
 
     return &lock->qp_group[qp_idx];
@@ -296,9 +414,9 @@ void ossl_rcu_read_unlock(CRYPTO_RCU_LOCK *lock)
         if (data->thread_qps[i].lock == lock) {
             data->thread_qps[i].depth--;
             if (data->thread_qps[i].depth == 0) {
-                CRYPTO_atomic_add64(&data->thread_qps[i].qp->users,
-                                    (uint64_t)-1, (uint64_t *)&ret,
-                                    lock->rw_lock);
+                CRYPTO_atomic_add64(
+                    (uint64_t *)&data->thread_qps[i].qp->users,
+                    (uint64_t)-1, (uint64_t *)&ret, lock->rw_lock);
                 OPENSSL_assert(ret >= 0);
                 data->thread_qps[i].qp = NULL;
                 data->thread_qps[i].lock = NULL;
@@ -388,7 +506,7 @@ void ossl_synchronize_rcu(CRYPTO_RCU_LOCK *lock)
 
     /* wait for the reader count to reach zero */
     do {
-        CRYPTO_atomic_load(&qp->users, &count, lock->rw_lock);
+        CRYPTO_atomic_load((uint64_t *)&qp->users, &count, lock->rw_lock);
     } while (count != (uint64_t)0);
 
     lock->next_to_retire++;
@@ -439,6 +557,15 @@ void ossl_rcu_assign_uptr(void **p, void **v)
     InterlockedExchangePointer((void * volatile *)p, (void *)*v);
 }
 
+#if (_WIN32_WINNT < 0x0500)
+WINBASEAPI
+BOOL
+WINAPI
+InitializeCriticalSectionAndSpinCount(
+    LPCRITICAL_SECTION lpCriticalSection,
+    DWORD dwSpinCount
+    );
+#endif
 
 CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
 {
@@ -545,8 +672,8 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     do {
         result = InterlockedCompareExchange(lock, ONCE_ININIT, ONCE_UNINITED);
         if (result == ONCE_UNINITED) {
-            init();
             *lock = ONCE_DONE;
+            init();
             return 1;
         }
     } while (result == ONCE_ININIT);
@@ -716,7 +843,7 @@ int CRYPTO_atomic_store(uint64_t *dst, uint64_t val, CRYPTO_RWLOCK *lock)
 
     return 1;
 # else
-    InterlockedExchange64(dst, val);
+    InterlockedExchange64((LONG64 volatile *)dst, val);
     return 1;
 # endif
 }
