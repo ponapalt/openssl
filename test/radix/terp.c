@@ -427,7 +427,7 @@ static int SRDR_print_one(SRDR *srdr, BIO *bio, size_t i, int *was_end)
             GET_OPERAND(srdr, v);
             PRINT_OPC(PUSH_U64);
             BIO_printf(bio, "%#20llx (%llu)",
-                       (unsigned long long)v, (unsigned long long)v);
+                       (unsigned __int64)v, (unsigned __int64)v);
         }
         break;
     case OPK_PUSH_SIZE:
@@ -437,7 +437,7 @@ static int SRDR_print_one(SRDR *srdr, BIO *bio, size_t i, int *was_end)
             GET_OPERAND(srdr, v);
             PRINT_OPC(PUSH_SIZE);
             BIO_printf(bio, "%#20llx (%llu)",
-                       (unsigned long long)v, (unsigned long long)v);
+                       (unsigned __int64)v, (unsigned __int64)v);
         }
         break;
     case OPK_FUNC:
@@ -465,7 +465,7 @@ static int SRDR_print_one(SRDR *srdr, BIO *bio, size_t i, int *was_end)
         break;
     default:
         TEST_error("unsupported opcode while printing: %llu",
-                   (unsigned long long)opc);
+                   (unsigned __int64)opc);
         goto err;
     }
 
@@ -797,7 +797,7 @@ spin_again:
             }
             break;
         default:
-            TEST_error("unknown opcode: %llu", (unsigned long long)opc);
+            TEST_error("unknown opcode: %llu", (unsigned __int64)opc);
             goto err;
         }
     }
@@ -872,7 +872,7 @@ err:
 
     GEN_SCRIPT_cleanup(&gen_script);
     BIO_printf(debug_bio, "Stats:\n  Ops executed: %16llu\n\n",
-               (unsigned long long)terp.ops_executed);
+               (unsigned __int64)terp.ops_executed);
     SCRIPT_INFO_print(script_info, debug_bio, /*error=*/!ok,
                       ok ? "completed" : "failed, exiting");
     return ok;

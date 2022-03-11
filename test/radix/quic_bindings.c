@@ -209,7 +209,7 @@ static void report_ssl_state(BIO *bio, const char *pfx, int is_write,
     BIO_printf(bio, "%s%-15s%s(%d)", pfx, is_write ? "Write state: " : "Read state: ",
         state_s, state);
     if (ec != UINT64_MAX)
-        BIO_printf(bio, ", %llu", (unsigned long long)ec);
+        BIO_printf(bio, ", %llu", (unsigned __int64)ec);
     BIO_printf(bio, "\n");
 }
 
@@ -249,9 +249,9 @@ static void report_ssl(SSL *ssl, BIO *bio, const char *pfx)
                    "%s, %s, reason: \"%s\"\n",
                    pfx,
                    e_str,
-                   (unsigned long long)cc_info.error_code,
+                   (unsigned __int64)cc_info.error_code,
                    f_str,
-                   (unsigned long long)cc_info.frame_type,
+                   (unsigned __int64)cc_info.frame_type,
                    (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) != 0
                      ? "local" : "remote",
                    (cc_info.flags & SSL_CONN_CLOSE_FLAG_TRANSPORT) != 0
@@ -265,7 +265,7 @@ static void report_ssl(SSL *ssl, BIO *bio, const char *pfx)
 
         if (stream_id != UINT64_MAX)
             BIO_printf(bio, "%sStream ID: %llu\n", pfx,
-                       (unsigned long long)stream_id);
+                       (unsigned __int64)stream_id);
 
         rstate = SSL_get_stream_read_state(ssl);
         wstate = SSL_get_stream_write_state(ssl);
@@ -315,7 +315,7 @@ static void RADIX_PROCESS_report_state(RADIX_PROCESS *rp, BIO *bio,
     BIO_printf(bio, "  Threads (incl. main):        %zu\n",
                rp->next_thread_idx);
     BIO_printf(bio, "  Time slip:                   %llu ms\n",
-               (unsigned long long)ossl_time2ms(rp->time_slip));
+               (unsigned __int64)ossl_time2ms(rp->time_slip));
 
     BIO_printf(bio, "  Objects:\n");
     lh_RADIX_OBJ_doall_arg(rp->objs, report_obj, bio);
