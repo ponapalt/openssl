@@ -60,9 +60,10 @@ static const char *select_name = NULL;
 
 #define OPENSSL_PRINT_DISABLED(bio, name, str)                                 \
     do {                                                                       \
+        size_t i;                                                              \
         if (OPENSSL_HAS_DISABLED(name)) {                                      \
             BIO_puts((bio), "Disabled " str "(s):\n");                         \
-            for (size_t i = 1; i < OSSL_NELEM(openssl_disabled_##name); i++) { \
+            for (i = 1; i < OSSL_NELEM(openssl_disabled_##name); i++) {       \
                 BIO_printf((bio), "\t- %s\n", openssl_disabled_##name[i]);     \
             }                                                                  \
         } else {                                                               \
