@@ -163,6 +163,7 @@ int SHA512_Final(unsigned char *out, SHA512_CTX *c)
 {
     unsigned char *p = (unsigned char *)c->u.p;
     size_t n = c->num;
+    uint8_t* cu;
 
     p[n] = 0x80; /* There always is a room for one */
     n++;
@@ -177,7 +178,7 @@ int SHA512_Final(unsigned char *out, SHA512_CTX *c)
     c->u.d[SHA_LBLOCK - 2] = c->Nh;
     c->u.d[SHA_LBLOCK - 1] = c->Nl;
 #else
-    uint8_t *cu = p + sizeof(c->u) - 16;
+    cu = p + sizeof(c->u) - 16;
 
     cu = OPENSSL_store_u64_be(cu, (uint64_t)c->Nh);
     cu = OPENSSL_store_u64_be(cu, (uint64_t)c->Nl);

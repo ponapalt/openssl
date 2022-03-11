@@ -25,6 +25,7 @@ struct ssl_module_st {
 
 static void ssl_module_free(CONF_IMODULE *md)
 {
+    size_t i,j;
     SSL_MODULE *ssl = CONF_imodule_get_usr_data(md);
 
     if (ssl == NULL)
@@ -33,11 +34,11 @@ static void ssl_module_free(CONF_IMODULE *md)
     CONF_imodule_set_usr_data(md, NULL);
     ossl_lib_ctx_detach_ssl_conf_imodule(NULL, md);
 
-    for (size_t i = 0; i < ssl->names_count; i++) {
+    for (i = 0; i < ssl->names_count; i++) {
         struct ssl_conf_name_st *tname = ssl->names + i;
 
         OPENSSL_free(tname->name);
-        for (size_t j = 0; j < tname->cmd_count; j++) {
+        for (j = 0; j < tname->cmd_count; j++) {
             OPENSSL_free(tname->cmds[j].cmd);
             OPENSSL_free(tname->cmds[j].arg);
         }

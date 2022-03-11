@@ -972,8 +972,8 @@ static int ech_ingest_test(int run)
         || ((flush_time <= add_time) && !TEST_int_eq(keysaftr, 0))
         || ((flush_time > add_time) && !TEST_int_eq(keysaftr, 1)
             && !TEST_int_eq(keysaftr, 0))) {
-        TEST_info("Flush time: %lld, add_time: %lld", (long long)flush_time,
-            (long long)add_time);
+        TEST_info("Flush time: %lld, add_time: %lld", (int64_t)flush_time,
+            (int64_t)add_time);
         goto end;
     }
     rv = 1;

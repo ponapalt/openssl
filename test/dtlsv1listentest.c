@@ -753,7 +753,7 @@ static int dtls_listen_write_seq_test(int tst)
         if (!TEST_ptr(s)
             || !TEST_true(s->rlayer.wrlmethod->set_sequence != NULL)
             || !TEST_true(s->rlayer.wrlmethod->set_sequence(s->rlayer.wrl,
-                0xffffffffffffULL)))
+                UINT64_C(0xffffffffffff))))
             goto err;
     }
 

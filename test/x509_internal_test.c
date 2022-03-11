@@ -354,8 +354,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "verifying notBefore %lld, notAfter %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     if (ossl_x509_check_crl_time(ctx, crl, 0) != expected_crl_value) {
@@ -363,8 +363,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "verifying lastUpdate %lld, nextUpdate %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     error = 0;
@@ -373,8 +373,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "when verifying notBefore %lld, notAfter %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     if (error != expected_error) {
@@ -383,8 +383,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "%lld at time %lld\n",
             file, line,
             error, expected_error,
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     return 0;
@@ -432,11 +432,11 @@ static int do_x509_time_tests(CERT_TEST_DATA *tests, size_t ntests)
         int64_t test_time;
 
         if (!TEST_true(ossl_posix_to_asn1_time(tests[i].NotBefore, &nb))) {
-            TEST_info("Could not create NotBefore for time %lld\n", (long long)tests[i].NotBefore);
+            TEST_info("Could not create NotBefore for time %lld\n", (int64_t)tests[i].NotBefore);
             goto err;
         }
         if (!TEST_true(ossl_posix_to_asn1_time(tests[i].NotAfter, &na))) {
-            TEST_info("Could not create NotAfter for time %lld\n", (long long)tests[i].NotBefore);
+            TEST_info("Could not create NotAfter for time %lld\n", (int64_t)tests[i].NotBefore);
             goto err;
         }
 
@@ -825,17 +825,19 @@ err:
  * An EVP_MD with NID_undef type but a name that OBJ_txt2obj() can resolve.
  * This exercises the OBJ_txt2obj() branch in X509_ALGOR_set_md.
  */
-static const EVP_MD custom_md_known_oid = {
-    .type = NID_undef,
-    .pkey_type = NID_undef,
-    .type_name = "SHA256", /* OBJ_txt2obj() resolves this via OBJ_sn2nid() */
-};
+static EVP_MD custom_md_known_oid;
 
 static int test_X509_ALGOR_set_md_nid_undef_known_name(void)
 {
     X509_ALGOR *alg = NULL;
     const ASN1_OBJECT *aobj = NULL;
     int ret = 0;
+
+    memset(&custom_md_known_oid, 0, sizeof(custom_md_known_oid));
+    custom_md_known_oid.type = NID_undef;
+    custom_md_known_oid.pkey_type = NID_undef;
+    /* OBJ_txt2obj() resolves this via OBJ_sn2nid() */
+    custom_md_known_oid.type_name = "SHA256";
 
     if (!TEST_ptr(alg = X509_ALGOR_new()))
         goto err;
@@ -859,16 +861,17 @@ err:
  * Before the null-pointer fix, X509_ALGOR_set0 was called with a NULL obj,
  * causing undefined behaviour.  After the fix, X509_ALGOR_set_md returns 0.
  */
-static const EVP_MD custom_md_unknown_oid = {
-    .type = NID_undef,
-    .pkey_type = NID_undef,
-    .type_name = "not-a-known-oid-name",
-};
+static EVP_MD custom_md_unknown_oid;
 
 static int test_X509_ALGOR_set_md_null_obj(void)
 {
     X509_ALGOR *alg = NULL;
     int ret = 0;
+
+    memset(&custom_md_unknown_oid, 0, sizeof(custom_md_unknown_oid));
+    custom_md_unknown_oid.type = NID_undef;
+    custom_md_unknown_oid.pkey_type = NID_undef;
+    custom_md_unknown_oid.type_name = "not-a-known-oid-name";
 
     if (!TEST_ptr(alg = X509_ALGOR_new()))
         goto err;

@@ -140,12 +140,15 @@ QLOG *ossl_qlog_new_from_env(const QLOG_TRACE_INFO *info)
         l += n;
     }
 
-    int n = snprintf(filename + l, strl - l, "_%s.sqlog",
-        info->is_server ? "server" : "client");
+    {
+        /* C90 compilers require declarations at the start of a block */
+        int n = snprintf(filename + l, strl - l, "_%s.sqlog",
+            info->is_server ? "server" : "client");
 
-    if (n < 0 || (size_t)n >= strl - l)
-        goto err;
-    l += n;
+        if (n < 0 || (size_t)n >= strl - l)
+            goto err;
+        l += n;
+    }
 
     qlog = ossl_qlog_new(info);
     if (qlog == NULL)

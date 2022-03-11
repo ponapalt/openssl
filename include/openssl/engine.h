@@ -18,6 +18,7 @@
 #endif
 
 #include <openssl/opensslconf.h>
+#include <openssl/e_os2.h>
 
 /*
  * Engine support is gone. Definitions here are provided for the source code
@@ -1155,6 +1156,7 @@ ENGINE_FUNC(int, EVP_PKEY_set1_engine, (EVP_PKEY *pkey, ENGINE *e), 0)
 /* ENGINE *EVP_PKEY_get0_engine(const EVP_PKEY *pkey); */
 ENGINE_FUNC(ENGINE *, EVP_PKEY_get0_engine, (const EVP_PKEY *pkey), NULL)
 
+#ifndef OPENSSL_NO_DEPRECATED_1_1_0
 /* ENGINE *DH_get0_engine(DH *d); */
 ENGINE_FUNC(ENGINE *, DH_get0_engine, (DH *d), NULL)
 
@@ -1166,13 +1168,16 @@ ENGINE_FUNC(ENGINE *, DSA_get0_engine, (DSA *d), NULL)
 
 /* ENGINE *EC_KEY_get0_engine(const EC_KEY *eckey); */
 ENGINE_FUNC(ENGINE *, EC_KEY_get0_engine, (const EC_KEY *eckey), NULL)
+#endif
 
 /* const ENGINE *OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader); */
 ENGINE_FUNC(const ENGINE *, OSSL_STORE_LOADER_get0_engine, (const OSSL_STORE_LOADER *loader),
     NULL)
 
+#ifndef OPENSSL_NO_DEPRECATED_1_1_0
 /* int RAND_set_rand_engine(ENGINE *engine); */
 ENGINE_FUNC(int, RAND_set_rand_engine, (ENGINE *engine), 0)
+#endif
 
 /* int ERR_load_ENGINE_strings(void); */
 ENGINE_FUNC_NOARGS(int, ERR_load_ENGINE_strings, 1)

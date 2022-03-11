@@ -129,7 +129,7 @@ typedef void (*fp_pz_type)(OSSL_JSON_ENC *, const void *, size_t);
     static const struct script_info *get_script_##name(void) \
     {                                                        \
         static const char script_name[] = #name;             \
-        static const char script_title[] = #title;           \
+        static const char script_title[] = title;            \
                                                              \
         static const struct script_word script_words[] = {   \
             OP_INIT_FLAGS(flags),
@@ -198,7 +198,7 @@ OPJ_U64(12345)
 END_SCRIPT_EXPECTING_Q(12345)
 
 BEGIN_SCRIPT(u64_18446744073709551615, "serialize u64(18446744073709551615)", 0)
-OPJ_U64(18446744073709551615ULL)
+OPJ_U64(18446744073709551615UI64)
 END_SCRIPT_EXPECTING_Q(18446744073709551615)
 
 BEGIN_SCRIPT(i64_0, "serialize i64(0)", 0)
@@ -222,7 +222,7 @@ OPJ_I64(12345)
 END_SCRIPT_EXPECTING_Q(12345)
 
 BEGIN_SCRIPT(i64_9223372036854775807, "serialize i64(9223372036854775807)", 0)
-OPJ_I64(9223372036854775807LL)
+OPJ_I64(9223372036854775807I64)
 END_SCRIPT_EXPECTING_Q(9223372036854775807)
 
 BEGIN_SCRIPT(i64_m1, "serialize i64(-1)", 0)
@@ -242,11 +242,11 @@ OPJ_I64(-12345)
 END_SCRIPT_EXPECTING_Q(-12345)
 
 BEGIN_SCRIPT(i64_m9223372036854775807, "serialize i64(-9223372036854775807)", 0)
-OPJ_I64(-9223372036854775807LL)
+OPJ_I64(-9223372036854775807I64)
 END_SCRIPT_EXPECTING_Q(-9223372036854775807)
 
 BEGIN_SCRIPT(i64_m9223372036854775808, "serialize i64(-9223372036854775808)", 0)
-OPJ_I64(-9223372036854775807LL - 1LL)
+OPJ_I64(-9223372036854775807I64 - 1I64)
 END_SCRIPT_EXPECTING_Q(-9223372036854775808)
 
 BEGIN_SCRIPT(str_empty, "serialize \"\"", 0)
@@ -263,15 +263,18 @@ END_SCRIPT_EXPECTING_Q("abc")
 
 BEGIN_SCRIPT(str_quote, "serialize with quote", 0)
 OPJ_STR("abc\"def")
-END_SCRIPT_EXPECTING_Q("abc\"def")
+/* Spelled out rather than stringified: MSVC 6 mis-escapes # of a string. */
+END_SCRIPT_EXPECTING_S("\"abc\\\"def\"")
 
 BEGIN_SCRIPT(str_quote2, "serialize with quote", 0)
 OPJ_STR("abc\"\"def")
-END_SCRIPT_EXPECTING_Q("abc\"\"def")
+/* Spelled out rather than stringified: MSVC 6 mis-escapes # of a string. */
+END_SCRIPT_EXPECTING_S("\"abc\\\"\\\"def\"")
 
 BEGIN_SCRIPT(str_escape, "serialize with various escapes", 0)
 OPJ_STR("abc\"\"de'f\r\n\t\b\f\\\x01\v\x7f\\")
-END_SCRIPT_EXPECTING_Q("abc\"\"de'f\r\n\t\b\f\\\u0001\u000b\u007f\\")
+/* Spelled out rather than stringified: \uXXXX is not portable source. */
+END_SCRIPT_EXPECTING_S("\"abc\\\"\\\"de'f\\r\\n\\t\\b\\f\\\\\\u0001\\u000b\\u007f\\\\\"")
 
 BEGIN_SCRIPT(str_len, "length-signalled string", 0)
 OPJ_STR_LEN("abcdef", 6)
@@ -283,7 +286,8 @@ END_SCRIPT_EXPECTING_Q("")
 
 BEGIN_SCRIPT(str_len_nul, "string with NUL", 0)
 OPJ_STR_LEN("x\0y", 3)
-END_SCRIPT_EXPECTING_Q("x\u0000y")
+/* Spelled out rather than stringified: \uXXXX is not portable source. */
+END_SCRIPT_EXPECTING_S("\"x\\u0000y\"")
 
 BEGIN_SCRIPT(hex_data0, "zero-length hex data", 0)
 OPJ_STR_HEX("", 0)
