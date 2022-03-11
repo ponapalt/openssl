@@ -294,8 +294,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "verifying notBefore %lld, notAfter %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     if (ossl_x509_check_crl_time(ctx, crl, 0) != expected_crl_value) {
@@ -303,8 +303,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "verifying lastUpdate %lld, nextUpdate %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     error = 0;
@@ -313,8 +313,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "when verifying notBefore %lld, notAfter %lld at time %lld\n",
             file, line,
             expected_value ? "failed" : "succeeded",
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     if (error != expected_error) {
@@ -323,8 +323,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "%lld at time %lld\n",
             file, line,
             error, expected_error,
-            (long long)notBefore, (long long)notAfter,
-            (long long)test_time);
+            (int64_t)notBefore, (int64_t)notAfter,
+            (int64_t)test_time);
         return 1;
     }
     return 0;
@@ -372,11 +372,11 @@ static int do_x509_time_tests(CERT_TEST_DATA *tests, size_t ntests)
         int64_t test_time;
 
         if (!TEST_true(ossl_posix_to_asn1_time(tests[i].NotBefore, &nb))) {
-            TEST_info("Could not create NotBefore for time %lld\n", (long long)tests[i].NotBefore);
+            TEST_info("Could not create NotBefore for time %lld\n", (int64_t)tests[i].NotBefore);
             goto err;
         }
         if (!TEST_true(ossl_posix_to_asn1_time(tests[i].NotAfter, &na))) {
-            TEST_info("Could not create NotAfter for time %lld\n", (long long)tests[i].NotBefore);
+            TEST_info("Could not create NotAfter for time %lld\n", (int64_t)tests[i].NotBefore);
             goto err;
         }
 

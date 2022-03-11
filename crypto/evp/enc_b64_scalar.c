@@ -135,6 +135,7 @@ int evp_encodeblock_int(EVP_ENCODE_CTX *ctx, unsigned char *t,
         && (ctx->flags & EVP_ENCODE_CTX_USE_SRP_ALPHABET) != 0);
     int wrap_cnt_by_input = *wrap_cnt / 4 * 3;
     const int ctx_length = (ctx != NULL) ? EVP_ENCODE_B64_LENGTH : 0;
+    int wrap_cnt_nm3;
 
     if (srp) {
         e0 = base64_srp_bin2ascii_0;
@@ -165,7 +166,7 @@ int evp_encodeblock_int(EVP_ENCODE_CTX *ctx, unsigned char *t,
         return ret;
     } else if (ctx_length % 3 != 0) {
         i = 0;
-        int wrap_cnt_nm3 = 0;
+        wrap_cnt_nm3 = 0;
         while (i + 2 < dlen) {
             if (ctx != NULL) {
                 if ((wrap_cnt_nm3 < EVP_ENCODE_B64_LENGTH
