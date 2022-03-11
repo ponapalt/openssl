@@ -1800,12 +1800,12 @@ static int test_bw_limit(void)
                     sendlen > TEST_SINGLE_WRITE_SIZE ? TEST_SINGLE_WRITE_SIZE
                                                      : sendlen,
                     &written)) {
-                TEST_info("Retrying to send: %zu", sendlen);
+                TEST_info("Retrying to send: %llu", (uint64_t)sendlen);
                 if (!TEST_int_eq(SSL_get_error(clientquic, 0), SSL_ERROR_WANT_WRITE))
                     goto err;
             } else {
                 sendlen -= written;
-                TEST_info("Remaining to send: %zu", sendlen);
+                TEST_info("Remaining to send: %llu", (uint64_t)sendlen);
             }
         } else {
             SSL_handle_events(clientquic);
@@ -1817,16 +1817,16 @@ static int test_bw_limit(void)
                 &readbytes)
             && readbytes > 1) {
             recvlen -= readbytes;
-            TEST_info("Remaining to recv: %zu", recvlen);
+            TEST_info("Remaining to recv: %llu", (uint64_t)recvlen);
         } else {
-            TEST_info("No progress on recv: %zu", recvlen);
+            TEST_info("No progress on recv: %llu", (uint64_t)recvlen);
         }
         ossl_quic_tserver_tick(qtserv);
     }
     real_bw = TEST_TRANSFER_DATA_SIZE / qtest_get_stopwatch_time();
 
     TEST_info("BW limit: %d Bytes/ms Real bandwidth reached: %llu Bytes/ms",
-        TEST_BW_LIMIT, (unsigned long long)real_bw);
+        TEST_BW_LIMIT, (uint64_t)real_bw);
 
     if (!TEST_uint64_t_lt(real_bw, TEST_BW_LIMIT))
         goto err;
@@ -2328,8 +2328,8 @@ static int test_tparam(int idx)
             || !TEST_ptr(strstr(info.reason, ctx.t->expect_fail))) {
             TEST_error("expected connection closure information mismatch"
                        " during TPARAM test: flags=%llu ec=%llu reason='%s'",
-                (unsigned long long)info.flags,
-                (unsigned long long)info.error_code,
+                (uint64_t)info.flags,
+                (uint64_t)info.error_code,
                 info.reason);
             goto err;
         }
@@ -2341,11 +2341,11 @@ err:
         if (ctx.t->expect_fail != NULL)
             TEST_info("failed during test for id=%llu, op=%d, bl=%zu, "
                       "expected failure='%s'",
-                (unsigned long long)ctx.t->id,
+                (uint64_t)ctx.t->id,
                 ctx.t->op, ctx.t->buf_len, ctx.t->expect_fail);
         else
             TEST_info("failed during test for id=%llu, op=%d, bl=%zu",
-                (unsigned long long)ctx.t->id, ctx.t->op, ctx.t->buf_len);
+                (uint64_t)ctx.t->id, ctx.t->op, ctx.t->buf_len);
     }
 
     ossl_quic_tserver_free(s);
@@ -3666,7 +3666,7 @@ static int test_quic_amplification_limit(void)
     first_injected_pn = ossl_quic_tx_packetiser_get_next_pn(
         cch->txp, QUIC_PN_SPACE_INITIAL);
     TEST_info("next client Initial packet number: %llu",
-        (unsigned long long)first_injected_pn);
+        (uint64_t)first_injected_pn);
 
     /* Count but never deliver the server flight to the QUIC client. */
     if (!TEST_true(drain_server_output(c_bio, &server_bytes, &server_datagrams)))
@@ -3703,13 +3703,13 @@ static int test_quic_amplification_limit(void)
     }
 
     TEST_info("client UDP payload:  %llu bytes in 2 datagrams",
-        (unsigned long long)client_bytes);
+        (uint64_t)client_bytes);
     TEST_info("RFC 9000 ceiling:    %llu bytes",
-        (unsigned long long)rfc_ceiling);
+        (uint64_t)rfc_ceiling);
     TEST_info("server UDP payload:  %llu bytes in %llu datagrams",
-        (unsigned long long)server_bytes, (unsigned long long)server_datagrams);
+        (uint64_t)server_bytes, (uint64_t)server_datagrams);
     TEST_info("amplification ratio: %.2fx",
-        (double)server_bytes / (double)client_bytes);
+        (double)(int64_t)server_bytes / (double)(int64_t)client_bytes);
     TEST_info("handshake complete:  %s",
         sch->handshake_complete ? "yes" : "no");
     TEST_info("bogus credit >100k:  %s",
@@ -4193,9 +4193,39 @@ static int test_quic_peer_addr_common(int family,
     BIO_sock_init();
 #endif
 
+#if defined(_WIN32) && (!defined(_WIN32_WINNT) || _WIN32_WINNT < 0x0600)
+    /* inet_pton is not available on Windows XP and earlier, use WSAStringToAddress */
+    {
+        struct sockaddr_storage ss;
+        int ss_len = sizeof(ss);
+
+        memset(&ss, 0, sizeof(ss));
+        ss_len = sizeof(ss);
+        if (WSAStringToAddressA((LPSTR)srv_str, family, NULL,
+                (struct sockaddr *)&ss, &ss_len)
+            != 0)
+            goto err;
+        if (family == AF_INET)
+            memcpy(srv_ip, &((struct sockaddr_in *)&ss)->sin_addr, 4);
+        else
+            memcpy(srv_ip, &((struct sockaddr_in6 *)&ss)->sin6_addr, 16);
+
+        memset(&ss, 0, sizeof(ss));
+        ss_len = sizeof(ss);
+        if (WSAStringToAddressA((LPSTR)cli_str, family, NULL,
+                (struct sockaddr *)&ss, &ss_len)
+            != 0)
+            goto err;
+        if (family == AF_INET)
+            memcpy(cli_ip, &((struct sockaddr_in *)&ss)->sin_addr, 4);
+        else
+            memcpy(cli_ip, &((struct sockaddr_in6 *)&ss)->sin6_addr, 16);
+    }
+#else
     if (!TEST_int_eq(inet_pton(family, srv_str, srv_ip), 1)
         || !TEST_int_eq(inet_pton(family, cli_str, cli_ip), 1))
         goto err;
+#endif
 
     if (!TEST_ptr(sctx = create_server_ctx())
         || !TEST_ptr(cctx = create_client_ctx()))

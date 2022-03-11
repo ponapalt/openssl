@@ -39,7 +39,8 @@
 
 #include <openssl/opensslconf.h>
 
-#include <stdint.h>
+#include <stddef.h>              /* for size_t */
+#include <openssl/e_os2.h>       /* for uint8_t */
 #include <string.h>
 #include <openssl/err.h>
 #include "ec_local.h"

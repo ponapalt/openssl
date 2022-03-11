@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>              /* for size_t */
+#include <openssl/e_os2.h>       /* for uint8_t */
 
 #include <openssl/opensslconf.h>
 #include <internal/priority_queue.h>
