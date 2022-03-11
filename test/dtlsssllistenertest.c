@@ -5792,7 +5792,7 @@ static CRYPTO_THREAD_RETVAL poll_cleanup_worker(void *arg)
  */
 static int test_dtls_poll_cleanup_order(int idx)
 {
-    struct poll_cleanup_listener listener[2] = { { .fd = -1 }, { .fd = -1 } };
+    struct poll_cleanup_listener listener[2] = { { NULL, NULL, NULL, -1 }, { NULL, NULL, NULL, -1 } };
     struct poll_cleanup_test t = { 0 };
     CRYPTO_THREAD *thread = NULL;
     OSSL_TIME deadline;
