@@ -375,6 +375,7 @@ int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
 {
     int i, j;
     size_t total = 0;
+    int wrap_cnt;
 
     *outl = 0;
     if (inl <= 0)
@@ -390,7 +391,7 @@ int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
         memcpy(&(ctx->enc_data[ctx->num]), in, i);
         in += i;
         inl -= i;
-        int wrap_cnt = 0;
+        wrap_cnt = 0;
         j = evp_encodeblock_int(ctx, out, ctx->enc_data, EVP_ENCODE_B64_LENGTH,
             &wrap_cnt);
         ctx->num = 0;
@@ -398,7 +399,7 @@ int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
         total = j;
         *out = '\0';
     }
-    int wrap_cnt = 0;
+    wrap_cnt = 0;
     if (EVP_ENCODE_B64_LENGTH % 3 != 0) {
         j = evp_encodeblock_int(ctx, out, in, inl - (inl % EVP_ENCODE_B64_LENGTH),
             &wrap_cnt);
