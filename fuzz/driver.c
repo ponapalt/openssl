@@ -7,7 +7,8 @@
  * https://www.openssl.org/source/license.html
  * or in the file LICENSE in the source distribution.
  */
-#include <stdint.h>
+#include <stddef.h>              /* for size_t */
+#include <openssl/e_os2.h>       /* for uint8_t */
 #include <unistd.h>
 #include <stdlib.h>
 #include <openssl/opensslconf.h>

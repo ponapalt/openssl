@@ -86,7 +86,7 @@ static void testfile(const char *pathname, int file_idx)
         return;
 
     fprintf(stderr, "# CORPUS_FILE file_idx=%d size=%lld path=%s\n",
-        file_idx, (long long)st.st_size, pathname);
+        file_idx, (int64_t)st.st_size, pathname);
     f = fopen(pathname, "rb");
     if (f == NULL)
         return;

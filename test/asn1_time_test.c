@@ -641,7 +641,7 @@ static struct testdata tbl_testdata_neg_64bit[] = {
         V_ASN1_GENERALIZEDTIME,
         V_ASN1_GENERALIZEDTIME,
         1,
-        (time_t)-2147483649LL,
+        (time_t)-2147483649I64,
         -1,
         0,
     },
@@ -650,7 +650,7 @@ static struct testdata tbl_testdata_neg_64bit[] = {
         V_ASN1_GENERALIZEDTIME,
         V_ASN1_GENERALIZEDTIME,
         1,
-        (time_t)-2208945600LL,
+        (time_t)-2208945600I64,
         -1,
         0,
     },
@@ -945,8 +945,8 @@ static int convert_asn1_to_time_t(int idx)
             TEST_info("test_asn1_string_to_time_t (%s) failed: expected %lli"
                       ", got %lli\n",
                 asn1_to_utc[idx].input,
-                (long long int)asn1_to_utc[idx].expected,
-                (long long int)testdateutc);
+                (int64_t)asn1_to_utc[idx].expected,
+                (int64_t)testdateutc);
             return 0;
         }
     }
@@ -954,8 +954,8 @@ static int convert_asn1_to_time_t(int idx)
     if (!TEST_time_t_eq(testdateutc, asn1_to_utc[idx].expected)) {
         TEST_info("test_asn1_string_to_time_t (%s) failed: expected %lli, got %lli\n",
             asn1_to_utc[idx].input,
-            (long long int)asn1_to_utc[idx].expected,
-            (long long int)testdateutc);
+            (int64_t)asn1_to_utc[idx].expected,
+            (int64_t)testdateutc);
         return 0;
     }
     return 1;
@@ -1228,27 +1228,27 @@ static int test_gmtime_range(void)
         tt = (time_t)i;
         memset(&tm, 0, sizeof(struct tm));
         if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
             goto err;
         }
     }
     tt = (time_t)platform_max;
     if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-        TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+        TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
         goto err;
     }
 
     if (time_t_min() <= -1) {
         tt = -1;
         if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
             goto err;
         }
     }
     if (time_t_min() <= 0) {
         tt = 0;
         if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
             goto err;
         }
     }
@@ -1256,7 +1256,7 @@ static int test_gmtime_range(void)
     if (time_t_max() >= (int64_t)INT32_MAX) {
         tt = (time_t)INT32_MAX;
         if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
             goto err;
         }
     }
@@ -1264,7 +1264,7 @@ static int test_gmtime_range(void)
     if (time_t_min() >= (int64_t)UINT32_MAX) {
         tt = (time_t)UINT32_MAX;
         if (!TEST_ptr(OPENSSL_gmtime(&tt, &tm))) {
-            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (long long)tt);
+            TEST_info("OPENSSL_gmtime failed unexpectedly for value %lld", (int64_t)tt);
             goto err;
         }
     }
