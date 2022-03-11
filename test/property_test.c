@@ -9,6 +9,7 @@
  */
 
 #include <stdarg.h>
+#include <string.h>
 #include <openssl/evp.h>
 #include "testutil.h"
 #include "internal/nelem.h"
@@ -444,20 +445,13 @@ err:
     return ret;
 }
 
+static OSSL_PROVIDER fake_provider1;
+static OSSL_PROVIDER fake_provider2;
+static const OSSL_PROVIDER *fake_prov1 = &fake_provider1;
+static const OSSL_PROVIDER *fake_prov2 = &fake_provider2;
+
 static int test_property(void)
 {
-    static OSSL_PROVIDER fake_provider1 = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "fake-provider1"
-    };
-    static OSSL_PROVIDER fake_provider2 = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "fake-provider2"
-    };
-    static const OSSL_PROVIDER *fake_prov1 = &fake_provider1;
-    static const OSSL_PROVIDER *fake_prov2 = &fake_provider2;
     static const struct {
         const OSSL_PROVIDER **prov;
         int nid;
@@ -493,7 +487,17 @@ static int test_property(void)
     size_t i;
     int ret = 0;
     void *result;
+    static int prov_initialized = 0;
 
+    if (!prov_initialized) {
+        fake_provider1.flag_initialized = 1;
+        fake_provider1.flag_activated = 1;
+        fake_provider1.name = "fake-provider1";
+        fake_provider2.flag_initialized = 1;
+        fake_provider2.flag_activated = 1;
+        fake_provider2.name = "fake-provider2";
+        prov_initialized = 1;
+    }
     if (!TEST_ptr(store = ossl_method_store_new(NULL))
         || !add_property_names("fast", "colour", "sky", "furry", NULL))
         goto err;
@@ -603,11 +607,11 @@ static int test_query_cache_stochastic(void)
     void *result;
     int errors = 0;
     int v[10001];
-    OSSL_PROVIDER prov = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "dummy-test-provider"
-    };
+    OSSL_PROVIDER prov = {0};
+
+    prov.flag_initialized = 1;
+    prov.flag_activated = 1;
+    prov.name = "dummy-test-provider";
 
     if (!TEST_ptr(store = ossl_method_store_new(NULL))
         || !add_property_names("n", NULL))
@@ -648,11 +652,11 @@ static int test_query_cache_set_duplicate(void)
     int res = 0;
     int refs = 0;
     void *result = NULL;
-    OSSL_PROVIDER prov = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "dummy-test-provider"
-    };
+    OSSL_PROVIDER prov = {0};
+
+    prov.flag_initialized = 1;
+    prov.flag_activated = 1;
+    prov.name = "dummy-test-provider";
 
     if (!TEST_ptr(store = ossl_method_store_new(NULL))
         || !TEST_true(ossl_method_store_add(store, &prov, 1, "", &refs,
@@ -704,16 +708,18 @@ static int test_query_cache_provider_order(void)
     int res = 0;
     int method1 = 0, method2 = 0;
     void *result = NULL;
-    OSSL_PROVIDER prov1 = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "first-provider"
-    };
-    OSSL_PROVIDER prov2 = {
-        .flag_initialized = 1,
-        .flag_activated = 1,
-        .name = "second-provider"
-    };
+    OSSL_PROVIDER prov1;
+    OSSL_PROVIDER prov2;
+
+    memset(&prov1, 0, sizeof(prov1));
+    prov1.flag_initialized = 1;
+    prov1.flag_activated = 1;
+    prov1.name = "first-provider";
+
+    memset(&prov2, 0, sizeof(prov2));
+    prov2.flag_initialized = 1;
+    prov2.flag_activated = 1;
+    prov2.name = "second-provider";
 
     if (!TEST_ptr(store = ossl_method_store_new(NULL)))
         goto err;

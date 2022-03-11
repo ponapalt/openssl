@@ -58,14 +58,14 @@ typedef union {
     uint64_t u;
 } elem64;
 
-#define TWO(p) ((double)(1ULL << (p)))
+#define TWO(p) ((double)(1UI64 << (p)))
 #define TWO0 TWO(0)
 #define TWO32 TWO(32)
 #define TWO64 (TWO32 * TWO(32))
 #define TWO96 (TWO64 * TWO(32))
 #define TWO130 (TWO96 * TWO(34))
 
-#define EXP(p) ((1023ULL + (p)) << 52)
+#define EXP(p) ((1023UI64 + (p)) << 52)
 
 #if defined(__x86_64__) || (defined(__PPC__) && defined(__LITTLE_ENDIAN__))
 #define U8TOU32(p) (*(const uint32_t *)(p))
@@ -431,10 +431,10 @@ void poly1305_emit(void *ctx, unsigned char mac[16], const uint32_t nonce[4])
     /*
      * thanks to bias masking exponent gives integer result
      */
-    h0 = st->h[0].u & 0x000fffffffffffffULL;
-    h1 = st->h[1].u & 0x000fffffffffffffULL;
-    h2 = st->h[2].u & 0x000fffffffffffffULL;
-    h3 = st->h[3].u & 0x000fffffffffffffULL;
+    h0 = st->h[0].u & 0x000fffffffffffffUI64;
+    h1 = st->h[1].u & 0x000fffffffffffffUI64;
+    h2 = st->h[2].u & 0x000fffffffffffffUI64;
+    h3 = st->h[3].u & 0x000fffffffffffffUI64;
 
     /*
      * can be partially reduced, so reduce...
