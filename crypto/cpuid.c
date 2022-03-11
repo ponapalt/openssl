@@ -37,7 +37,7 @@ static variant_char *ossl_getenv(const char *name)
      * just ignore |name| and use equivalent wide-char L-literal.
      * As well as to ignore excessively long values...
      */
-    static WCHAR value[48];
+    static WCHAR value[49];
     DWORD len = GetEnvironmentVariableW(L"OPENSSL_ia32cap", value, 48);
 
     return (len > 0 && len < 48) ? value : NULL;

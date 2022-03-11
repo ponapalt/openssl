@@ -160,7 +160,7 @@ static int read_utf8_string(const uint8_t **buf, size_t *len, char **res)
     size_t found_len;
     int r;
 
-    found_len = strnlen((const char *) *buf, *len);
+    found_len = strlen((const char *) *buf);
 
     if (found_len == *len) {
         r = -1;
