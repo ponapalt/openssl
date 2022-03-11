@@ -100,8 +100,8 @@ OPENSSL_store_u16_le(unsigned char *out, uint16_t val)
     memcpy(out, (unsigned char *)&t, 2);
     return out + 2;
 #else
-    *out++ = (val & 0xff);
-    *out++ = (val >> 8) & 0xff;
+    *out++ = (unsigned char)(val & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
     return out;
 #endif
 }
@@ -115,8 +115,8 @@ OPENSSL_store_u16_be(unsigned char *out, uint16_t val)
     memcpy(out, (unsigned char *)&t, 2);
     return out + 2;
 #else
-    *out++ = (val >> 8) & 0xff;
-    *out++ = (val & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
+    *out++ = (unsigned char)(val & 0xff);
     return out;
 #endif
 }
@@ -130,10 +130,10 @@ OPENSSL_store_u32_le(unsigned char *out, uint32_t val)
     memcpy(out, (unsigned char *)&t, 4);
     return out + 4;
 #else
-    *out++ = (val & 0xff);
-    *out++ = (val >> 8) & 0xff;
-    *out++ = (val >> 16) & 0xff;
-    *out++ = (val >> 24) & 0xff;
+    *out++ = (unsigned char)(val & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
+    *out++ = (unsigned char)((val >> 16) & 0xff);
+    *out++ = (unsigned char)((val >> 24) & 0xff);
     return out;
 #endif
 }
@@ -147,10 +147,10 @@ OPENSSL_store_u32_be(unsigned char *out, uint32_t val)
     memcpy(out, (unsigned char *)&t, 4);
     return out + 4;
 #else
-    *out++ = (val >> 24) & 0xff;
-    *out++ = (val >> 16) & 0xff;
-    *out++ = (val >> 8) & 0xff;
-    *out++ = (val & 0xff);
+    *out++ = (unsigned char)((val >> 24) & 0xff);
+    *out++ = (unsigned char)((val >> 16) & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
+    *out++ = (unsigned char)(val & 0xff);
     return out;
 #endif
 }
@@ -164,14 +164,14 @@ OPENSSL_store_u64_le(unsigned char *out, uint64_t val)
     memcpy(out, (unsigned char *)&t, 8);
     return out + 8;
 #else
-    *out++ = (val & 0xff);
-    *out++ = (val >> 8) & 0xff;
-    *out++ = (val >> 16) & 0xff;
-    *out++ = (val >> 24) & 0xff;
-    *out++ = (val >> 32) & 0xff;
-    *out++ = (val >> 40) & 0xff;
-    *out++ = (val >> 48) & 0xff;
-    *out++ = (val >> 56) & 0xff;
+    *out++ = (unsigned char)(val & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
+    *out++ = (unsigned char)((val >> 16) & 0xff);
+    *out++ = (unsigned char)((val >> 24) & 0xff);
+    *out++ = (unsigned char)((val >> 32) & 0xff);
+    *out++ = (unsigned char)((val >> 40) & 0xff);
+    *out++ = (unsigned char)((val >> 48) & 0xff);
+    *out++ = (unsigned char)((val >> 56) & 0xff);
     return out;
 #endif
 }
@@ -185,14 +185,14 @@ OPENSSL_store_u64_be(unsigned char *out, uint64_t val)
     memcpy(out, (unsigned char *)&t, 8);
     return out + 8;
 #else
-    *out++ = (val >> 56) & 0xff;
-    *out++ = (val >> 48) & 0xff;
-    *out++ = (val >> 40) & 0xff;
-    *out++ = (val >> 32) & 0xff;
-    *out++ = (val >> 24) & 0xff;
-    *out++ = (val >> 16) & 0xff;
-    *out++ = (val >> 8) & 0xff;
-    *out++ = (val & 0xff);
+    *out++ = (unsigned char)((val >> 56) & 0xff);
+    *out++ = (unsigned char)((val >> 48) & 0xff);
+    *out++ = (unsigned char)((val >> 40) & 0xff);
+    *out++ = (unsigned char)((val >> 32) & 0xff);
+    *out++ = (unsigned char)((val >> 24) & 0xff);
+    *out++ = (unsigned char)((val >> 16) & 0xff);
+    *out++ = (unsigned char)((val >> 8) & 0xff);
+    *out++ = (unsigned char)(val & 0xff);
     return out;
 #endif
 }

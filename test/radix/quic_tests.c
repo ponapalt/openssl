@@ -2474,8 +2474,8 @@ DEF_FUNC(arm_forbidden_frame)
         goto err;
 
     TEST_info("Packet type %llu, frame type %llu",
-        (unsigned long long)radix_fault.word0,
-        (unsigned long long)radix_fault.word1);
+        (uint64_t)radix_fault.word0,
+        (uint64_t)radix_fault.word1);
     ok = 1;
 err:
     return ok;

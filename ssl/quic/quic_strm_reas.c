@@ -14,7 +14,15 @@
 #include "internal/list.h"
 #include "internal/quic_channel.h"
 
+#if defined(_MSC_VER) && _MSC_VER < 1400
+/* Variadic macros are not available in MSVC before Visual Studio 2005 */
+#include <stdio.h>
 #if !defined(NDEBUG) && defined(WITH_STRM_REAS_DEBUG)
+#define DEBUG_PRINT fprintf
+#else
+#define DEBUG_PRINT 1 ? (void)0 : (void)fprintf
+#endif
+#elif !defined(NDEBUG) && defined(WITH_STRM_REAS_DEBUG)
 #include <stdio.h>
 #define DEBUG_PRINT(...) fprintf(__VA_ARGS__)
 #else
