@@ -259,8 +259,8 @@ static int ticket_disable(SSL_CTX *ctx)
 static int test_tls12_ticket_enable(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -309,7 +309,7 @@ static int test_tls12_ticket_enable(void)
 static int test_tls12_ticket_disable_server(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
     int test;
 
     test = TEST_true(create_ssl_ctx_pair(NULL, TLS_server_method(), TLS_client_method(),
@@ -346,8 +346,8 @@ static int test_tls12_ticket_disable_server(void)
 static int test_tls13_ticket_ciphersuite_mismatch(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -392,8 +392,8 @@ static int test_tls13_ticket_ciphersuite_mismatch(void)
 static int test_tls13_ticket_enable(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -442,8 +442,8 @@ static int test_tls13_ticket_enable(void)
 static int test_tls13_ticket_initial_set_num_tickets_zero(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -489,8 +489,8 @@ static int test_tls13_ticket_initial_set_num_tickets_zero(void)
 static int test_tls13_ticket_resumed_set_num_tickets_zero(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -543,8 +543,8 @@ static int test_tls13_ticket_resumed_set_num_tickets_zero(void)
 static int test_tls13_ticket_disable_server(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     int test;
 
@@ -600,8 +600,8 @@ static int test_tls13_ticket_disable_server(void)
 static int test_tls13_ticket_no_decrypt(void)
 {
     SSL_CTX *c = NULL, *s = NULL;
-    struct tls13_channel initial = { .c.ssl = NULL, .s.ssl = NULL };
-    struct tls13_channel resumed = { .c.ssl = NULL, .s.ssl = NULL };
+    struct tls13_channel initial = {0};
+    struct tls13_channel resumed = {0};
     SSL_SESSION *sess = NULL;
     unsigned char k1[TICKET_KEYS_LENGTH];
     unsigned char k2[TICKET_KEYS_LENGTH];

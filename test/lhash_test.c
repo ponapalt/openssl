@@ -227,16 +227,17 @@ static int test_int_hashtable(int idx)
         { 34, 0 }
     };
     const size_t n_dels = OSSL_NELEM(dels);
-    HT_CONFIG hash_conf = {
-        .collision_check = 1,
-        .no_rcu = idx,
-    };
+    HT_CONFIG hash_conf;
     INTKEY key;
     int rc = 0;
     size_t i;
     HT *ht = NULL;
     int todel;
     HT_VALUE_LIST *list = NULL;
+
+    memset(&hash_conf, 0, sizeof(hash_conf));
+    hash_conf.collision_check = 1;
+    hash_conf.no_rcu = idx;
 
     ht = ossl_ht_new(&hash_conf);
 
@@ -311,16 +312,17 @@ end:
  */
 static int test_hashtable_insert_replace_mfail(void)
 {
-    HT_CONFIG hash_conf = {
-        .collision_check = 1,
-        .no_rcu = 0, /* RCU enabled - exercises cbi pre-alloc on replace */
-    };
+    HT_CONFIG hash_conf;
     INTKEY key;
     HT *ht = NULL;
     int *old = NULL;
     int ret = 0;
     static int v1 = 100;
     static int v2 = 200;
+
+    memset(&hash_conf, 0, sizeof(hash_conf));
+    hash_conf.collision_check = 1;
+    hash_conf.no_rcu = 0; /* RCU enabled - exercises cbi pre-alloc on replace */
 
     if (!TEST_ptr(ht = ossl_ht_new(&hash_conf)))
         goto end;
@@ -345,15 +347,15 @@ end:
 
 static int test_hashtable_free_mfail(void)
 {
-    HT_CONFIG hash_conf = {
-        .ht_free_fn = hashtable_intfree,
-        .collision_check = 1,
-        .no_rcu = 0,
-    };
+    HT_CONFIG hash_conf;
     INTKEY key;
     HT *ht = NULL;
     int *p;
     size_t i;
+
+    memset(&hash_conf, 0, sizeof(hash_conf));
+    hash_conf.ht_free_fn = hashtable_intfree;
+    hash_conf.collision_check = 1;
 
     if (!TEST_ptr(ht = ossl_ht_new(&hash_conf)))
         return 0;
@@ -483,18 +485,18 @@ static int test_hashtable_stress(int idx)
     const unsigned int n = 2500000;
     unsigned int i;
     int testresult = 0, *p;
-    HT_CONFIG hash_conf = {
-        .ht_free_fn = hashtable_intfree,
-        .ht_hash_fn = hashtable_hash,
-        .init_neighborhoods = 625000,
-        .collision_check = 1,
-        .lockless_reads = idx % 2,
-        .no_rcu = idx / 2,
-    };
-
+    HT_CONFIG hash_conf;
     HT *h;
     INTKEY key;
     HT_VALUE *v;
+
+    memset(&hash_conf, 0, sizeof(hash_conf));
+    hash_conf.ht_free_fn = hashtable_intfree;
+    hash_conf.ht_hash_fn = hashtable_hash;
+    hash_conf.init_neighborhoods = 625000;
+    hash_conf.collision_check = 1;
+    hash_conf.lockless_reads = idx % 2;
+    hash_conf.no_rcu = idx / 2;
 #ifdef MEASURE_HASH_PERFORMANCE
     struct timeval start, end, delta;
 #endif
@@ -791,12 +793,7 @@ static void do_mt_hash_work(void)
 
 static int test_hashtable_multithread(int idx)
 {
-    HT_CONFIG hash_conf = {
-        .ht_free_fn = hashtable_mt_free,
-        .init_neighborhoods = 0,
-        .collision_check = 1,
-        .no_rcu = idx,
-    };
+    HT_CONFIG hash_conf;
     int ret = 0;
     int i;
 #ifdef MEASURE_HASH_PERFORMANCE

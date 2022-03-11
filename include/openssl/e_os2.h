@@ -58,7 +58,6 @@ extern "C" {
 #define OPENSSL_SYS_WIN32_CYGWIN
 #else
 #if defined(_WIN32) || defined(OPENSSL_SYS_WIN32)
-#include "windows.h"
 #undef OPENSSL_SYS_UNIX
 #if !defined(OPENSSL_SYS_WIN32)
 #define OPENSSL_SYS_WIN32
@@ -189,6 +188,13 @@ extern "C" {
 #define __owur __attribute__((__warn_unused_result__))
 #else
 #define __owur
+#endif
+
+#ifndef INT64_C
+#define INT64_C(c) c ## i64
+#endif
+#ifndef UINT64_C
+#define UINT64_C(c) c ## ui64
 #endif
 
 /* Standard integer types */

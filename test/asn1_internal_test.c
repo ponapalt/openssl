@@ -400,7 +400,7 @@ static int test_a_posix_time(int64_t time, struct tm *tm, ASN1_TIME *asn1_time)
 
     if (!TEST_int_eq(OPENSSL_posix_to_tm(time, tm), expected_to_work)) {
         TEST_info("OPENSSL_posix_to_tm %s unexpectedly converting %lld\n",
-            expected_to_work ? "failed" : "succeeded", (long long)time);
+            expected_to_work ? "failed" : "succeeded", (int64_t)time);
         ret = 0;
     }
     if (ret && expected_to_work && OPENSSL_timegm(tm, &time_as_time_t)) {
@@ -415,7 +415,7 @@ static int test_a_posix_time(int64_t time, struct tm *tm, ASN1_TIME *asn1_time)
             == !expected_to_work) {
             TEST_info("ASN1_TIME_adj %s unexpectedly converting %lld\n",
                 expected_to_work ? "failed" : "succeeded",
-                (long long)time);
+                (int64_t)time);
             ret = 0;
         }
     } else {
@@ -427,7 +427,7 @@ static int test_a_posix_time(int64_t time, struct tm *tm, ASN1_TIME *asn1_time)
                 expected_to_work)) {
             TEST_info("ossl_asn1_time_from_posix %s unexpectedly converting %lld\n",
                 expected_to_work ? "failed" : "succeeded",
-                (long long)time);
+                (int64_t)time);
             ret = 0;
         }
     }
@@ -440,20 +440,20 @@ static int test_a_posix_time(int64_t time, struct tm *tm, ASN1_TIME *asn1_time)
          */
         if (!ASN1_TIME_to_tm(asn1_time, tm)) {
             TEST_info("ASN1_TIME_to_tm failed unexpectedly converting %lld\n",
-                (long long)time);
+                (int64_t)time);
             ret = 0;
         }
         /* That tm should convert back to a posix time */
         if (!TEST_int_eq(OPENSSL_tm_to_posix(tm, &should_be_same),
                 expected_to_work)) {
             TEST_info("OPENSSL_tm_to_posix failed unexpectedly converting %lld\n",
-                (long long)time);
+                (int64_t)time);
             ret = 0;
         }
         /* The resulting posix time should be the same one we started with. */
         if (!TEST_int64_t_eq(time, should_be_same)) {
             TEST_info("Got converted time of time of %lld, expected %lld\n",
-                (long long)should_be_same, (long long)time);
+                (int64_t)should_be_same, (int64_t)time);
             ret = 0;
         }
     }

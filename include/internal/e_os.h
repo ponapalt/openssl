@@ -352,12 +352,20 @@ inline int nssgetpid(void)
  * There is no locale_t on NONSTOP.
  */
 #if defined(OPENSSL_SYS_WINDOWS)
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
 typedef _locale_t locale_t;
 #define freelocale _free_locale
 #define strcasecmp_l _stricmp_l
 #define strncasecmp_l _strnicmp_l
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
+#else
+/* Older MSVC versions do not have locale-specific or case-insensitive
+ * string comparison functions. */
+#ifndef OPENSSL_NO_LOCALE
+#define OPENSSL_NO_LOCALE
+#endif
+#endif
 #elif !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L \
     || defined(OPENSSL_SYS_TANDEM)
 #ifndef OPENSSL_NO_LOCALE

@@ -543,8 +543,15 @@ void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
 typedef DWORD CRYPTO_THREAD_LOCAL;
 typedef DWORD CRYPTO_THREAD_ID;
 
-typedef INIT_ONCE CRYPTO_ONCE;
-#define CRYPTO_ONCE_STATIC_INIT INIT_ONCE_STATIC_INIT
+/*
+ * INIT_ONCE / InitOnceExecuteOnce() are only available in the Windows Vista
+ * (and later) SDK, so they cannot be used with old toolchains such as
+ * Visual C++ 6.0.  CRYPTO_THREAD_run_once() implements its own one-time
+ * initialisation on top of the Interlocked* APIs, so CRYPTO_ONCE only needs
+ * to be a zero-initialised LONG-sized state word.
+ */
+typedef LONG CRYPTO_ONCE;
+#define CRYPTO_ONCE_STATIC_INIT 0
 #endif
 #else
 #if defined(__TANDEM) && defined(_SPT_MODEL_)
