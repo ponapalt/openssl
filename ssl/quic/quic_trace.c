@@ -96,20 +96,20 @@ static int frame_ack(BIO *bio, PACKET *pkt)
         goto end;
 
     BIO_printf(bio, "    Largest acked: %llu\n",
-               (unsigned long long)ack.ack_ranges[0].end);
+               (uint64_t)ack.ack_ranges[0].end);
     BIO_printf(bio, "    Ack delay (raw) %llu\n",
-               (unsigned long long)ossl_time2ticks(ack.delay_time));
+               (uint64_t)ossl_time2ticks(ack.delay_time));
     BIO_printf(bio, "    Ack range count: %llu\n",
-               (unsigned long long)total_ranges - 1);
+               (uint64_t)total_ranges - 1);
     BIO_printf(bio, "    First ack range: %llu\n",
-               (unsigned long long)(ack.ack_ranges[0].end
+               (uint64_t)(ack.ack_ranges[0].end
                                     - ack.ack_ranges[0].start));
     for (i = 1; i < total_ranges; i++) {
         BIO_printf(bio, "    Gap: %llu\n",
-                   (unsigned long long)(ack.ack_ranges[i - 1].start
+                   (uint64_t)(ack.ack_ranges[i - 1].start
                                         - ack.ack_ranges[i].end - 2));
         BIO_printf(bio, "    Ack range len: %llu\n",
-                   (unsigned long long)(ack.ack_ranges[i].end
+                   (uint64_t)(ack.ack_ranges[i].end
                                         - ack.ack_ranges[i].start));
     }
 
@@ -127,11 +127,11 @@ static int frame_reset_stream(BIO *bio, PACKET *pkt)
         return 0;
 
     BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
+               (uint64_t)frame_data.stream_id);
     BIO_printf(bio, "    App Protocol Error Code: %llu\n",
-               (unsigned long long)frame_data.app_error_code);
+               (uint64_t)frame_data.app_error_code);
     BIO_printf(bio, "    Final size: %llu\n",
-               (unsigned long long)frame_data.final_size);
+               (uint64_t)frame_data.final_size);
 
     return 1;
 }
@@ -144,9 +144,9 @@ static int frame_stop_sending(BIO *bio, PACKET *pkt)
         return 0;
 
     BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
+               (uint64_t)frame_data.stream_id);
     BIO_printf(bio, "    App Protocol Error Code: %llu\n",
-               (unsigned long long)frame_data.app_error_code);
+               (uint64_t)frame_data.app_error_code);
 
     return 1;
 }
@@ -158,8 +158,8 @@ static int frame_crypto(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_crypto(pkt, 1, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Offset: %llu\n", (unsigned long long)frame_data.offset);
-    BIO_printf(bio, "    Len: %llu\n", (unsigned long long)frame_data.len);
+    BIO_printf(bio, "    Offset: %llu\n", (uint64_t)frame_data.offset);
+    BIO_printf(bio, "    Len: %llu\n", (uint64_t)frame_data.len);
 
     return 1;
 }
@@ -226,15 +226,15 @@ static int frame_stream(BIO *bio, PACKET *pkt, uint64_t frame_type)
         return 0;
 
     BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
+               (uint64_t)frame_data.stream_id);
     BIO_printf(bio, "    Offset: %llu\n",
-               (unsigned long long)frame_data.offset);
+               (uint64_t)frame_data.offset);
     /*
      * It would be nice to find a way of passing the implicit length through
      * to the msg_callback. But this is not currently possible.
      */
     if (frame_data.has_explicit_len)
-        BIO_printf(bio, "    Len: %llu\n", (unsigned long long)frame_data.len);
+        BIO_printf(bio, "    Len: %llu\n", (uint64_t)frame_data.len);
     else
         BIO_puts(bio, "    Len: <implicit length>\n");
 
@@ -248,7 +248,7 @@ static int frame_max_data(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_max_data(pkt, &max_data))
         return 0;
 
-    BIO_printf(bio, "    Max Data: %llu\n", (unsigned long long)max_data);
+    BIO_printf(bio, "    Max Data: %llu\n", (uint64_t)max_data);
 
     return 1;
 }
@@ -263,7 +263,7 @@ static int frame_max_stream_data(BIO *bio, PACKET *pkt)
         return 0;
 
     BIO_printf(bio, "    Max Stream Data: %llu\n",
-               (unsigned long long)max_stream_data);
+               (uint64_t)max_stream_data);
 
     return 1;
 }
@@ -275,7 +275,7 @@ static int frame_max_streams(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_max_streams(pkt, &max_streams))
         return 0;
 
-    BIO_printf(bio, "    Max Streams: %llu\n", (unsigned long long)max_streams);
+    BIO_printf(bio, "    Max Streams: %llu\n", (uint64_t)max_streams);
 
     return 1;
 }
@@ -287,7 +287,7 @@ static int frame_data_blocked(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_data_blocked(pkt, &max_data))
         return 0;
 
-    BIO_printf(bio, "    Max Data: %llu\n", (unsigned long long)max_data);
+    BIO_printf(bio, "    Max Data: %llu\n", (uint64_t)max_data);
 
     return 1;
 }
@@ -301,8 +301,8 @@ static int frame_stream_data_blocked(BIO *bio, PACKET *pkt)
                                                          &max_data))
         return 0;
 
-    BIO_printf(bio, "    Stream id: %llu\n", (unsigned long long)stream_id);
-    BIO_printf(bio, "    Max Data: %llu\n", (unsigned long long)max_data);
+    BIO_printf(bio, "    Stream id: %llu\n", (uint64_t)stream_id);
+    BIO_printf(bio, "    Max Data: %llu\n", (uint64_t)max_data);
 
     return 1;
 }
@@ -314,7 +314,7 @@ static int frame_streams_blocked(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_streams_blocked(pkt, &max_data))
         return 0;
 
-    BIO_printf(bio, "    Max Data: %llu\n", (unsigned long long)max_data);
+    BIO_printf(bio, "    Max Data: %llu\n", (uint64_t)max_data);
 
     return 1;
 }
@@ -327,9 +327,9 @@ static int frame_new_conn_id(BIO *bio, PACKET *pkt)
         return 0;
 
     BIO_printf(bio, "    Sequence Number: %llu\n",
-               (unsigned long long)frame_data.seq_num);
+               (uint64_t)frame_data.seq_num);
     BIO_printf(bio, "    Retire prior to: %llu\n",
-               (unsigned long long)frame_data.retire_prior_to);
+               (uint64_t)frame_data.retire_prior_to);
     BIO_puts(bio, "    Connection id: ");
     put_conn_id(bio, &frame_data.conn_id);
     BIO_puts(bio, "\n    Stateless Reset Token: ");
@@ -347,7 +347,7 @@ static int frame_retire_conn_id(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_retire_conn_id(pkt, &seq_num))
         return 0;
 
-    BIO_printf(bio, "    Sequence Number: %llu\n", (unsigned long long)seq_num);
+    BIO_printf(bio, "    Sequence Number: %llu\n", (uint64_t)seq_num);
 
     return 1;
 }
@@ -359,7 +359,7 @@ static int frame_path_challenge(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_path_challenge(pkt, &data))
         return 0;
 
-    BIO_printf(bio, "    Data: %016llx\n", (unsigned long long)data);
+    BIO_printf(bio, "    Data: %016llx\n", (uint64_t)data);
 
     return 1;
 }
@@ -371,7 +371,7 @@ static int frame_path_response(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_path_response(pkt, &data))
         return 0;
 
-    BIO_printf(bio, "    Data: %016llx\n", (unsigned long long)data);
+    BIO_printf(bio, "    Data: %016llx\n", (uint64_t)data);
 
     return 1;
 }
@@ -384,7 +384,7 @@ static int frame_conn_closed(BIO *bio, PACKET *pkt)
         return 0;
 
     BIO_printf(bio, "    Error Code: %llu\n",
-               (unsigned long long)frame_data.error_code);
+               (uint64_t)frame_data.error_code);
     BIO_puts(bio, "    Reason: ");
     put_str(bio, frame_data.reason, frame_data.reason_len);
     BIO_puts(bio, "\n");
