@@ -12,6 +12,11 @@
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 
+/* va_copy is not available in MSVC before VS2013 */
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(va_copy)
+# define va_copy(dst, src) ((dst) = (src))
+#endif
+
 int ossl_vasprintf(char **str, const char *format, va_list args)
 {
     char *candidate = NULL;
@@ -19,10 +24,10 @@ int ossl_vasprintf(char **str, const char *format, va_list args)
     size_t tmp_len = 0;
     char *tmp = NULL;
     int ret;
+    va_list args_copy;
 
     if ((candidate = OPENSSL_malloc(candidate_len)) == NULL)
         goto err;
-    va_list args_copy;
     va_copy(args_copy, args);
     ret = vsnprintf(candidate, candidate_len, format, args_copy);
     va_end(args_copy);

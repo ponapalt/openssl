@@ -217,6 +217,13 @@ typedef INTN ossl_ssize_t;
 #undef OPENSSL_NO_STDINT_H
 #endif
 
+#ifndef INT64_C
+#define INT64_C(c) (c##I64)
+#endif
+#ifndef UINT64_C
+#define UINT64_C(c) (c##UI64)
+#endif
+
 #ifdef _WIN32
 #ifdef _WIN64
 typedef int64_t ossl_ssize_t;
