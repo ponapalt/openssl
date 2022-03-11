@@ -42,7 +42,7 @@ extern "C" {
  * 64-bit processor other than LP64 ABI
  */
 # ifdef SIXTY_FOUR_BIT
-#  define BN_ULONG        unsigned long long
+#  define BN_ULONG        unsigned __int64
 #  define BN_BYTES        8
 # endif
 

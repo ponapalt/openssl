@@ -81,7 +81,7 @@
 #   define UINT32_C(c) (c##UL)
 #  endif
 #  ifndef UINT64_C
-#   define UINT64_C(c) (c##ULL)
+#   define UINT64_C(c) (c##Ui64)
 #  endif
 # endif
 

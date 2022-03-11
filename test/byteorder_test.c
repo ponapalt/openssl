@@ -61,7 +61,7 @@ static int test_byteorder(void)
     memset(out, 0xff, sizeof(out));
     restin = OPENSSL_load_u64_le(&u64, in);
     restout = OPENSSL_store_u64_le(out, u64);
-    if (!TEST_true(u64 == 0x0706050403020100ULL
+    if (!TEST_true(u64 == 0x0706050403020100Ui64
                    && memcmp(in, out, (size_t) 8) == 0
                    && restin == in + 8
                    && restout == out + 8)) {
@@ -72,7 +72,7 @@ static int test_byteorder(void)
     memset(out, 0xff, sizeof(out));
     restin = OPENSSL_load_u64_be(&u64, in);
     restout = OPENSSL_store_u64_be(out, u64);
-    if (!TEST_true(u64 == 0x0001020304050607ULL
+    if (!TEST_true(u64 == 0x0001020304050607Ui64
                    && memcmp(in, out, (size_t) 8) == 0
                    && restin == in + 8
                    && restout == out + 8)) {

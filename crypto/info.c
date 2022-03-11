@@ -53,16 +53,16 @@ DEFINE_RUN_ONCE_STATIC(init_info_strings)
 
     BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str),
                  CPUINFO_PREFIX "OPENSSL_ia32cap=0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx",
-                 (unsigned long long)OPENSSL_ia32cap_P[0] |
-                 (unsigned long long)OPENSSL_ia32cap_P[1] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[2] |
-                 (unsigned long long)OPENSSL_ia32cap_P[3] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[4] |
-                 (unsigned long long)OPENSSL_ia32cap_P[5] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[6] |
-                 (unsigned long long)OPENSSL_ia32cap_P[7] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[8] |
-                 (unsigned long long)OPENSSL_ia32cap_P[9] << 32);
+                 (unsigned __int64)OPENSSL_ia32cap_P[0] |
+                 (unsigned __int64)OPENSSL_ia32cap_P[1] << 32,
+                 (unsigned __int64)OPENSSL_ia32cap_P[2] |
+                 (unsigned __int64)OPENSSL_ia32cap_P[3] << 32,
+                 (unsigned __int64)OPENSSL_ia32cap_P[4] |
+                 (unsigned __int64)OPENSSL_ia32cap_P[5] << 32,
+                 (unsigned __int64)OPENSSL_ia32cap_P[6] |
+                 (unsigned __int64)OPENSSL_ia32cap_P[7] << 32,
+                 (unsigned __int64)OPENSSL_ia32cap_P[8] |
+                 (unsigned __int64)OPENSSL_ia32cap_P[9] << 32);
 
     if ((env = getenv("OPENSSL_ia32cap")) != NULL)
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
