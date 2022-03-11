@@ -375,9 +375,6 @@ int EVP_CIPHER_impl_ctx_size(const EVP_CIPHER *e)
 int EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     const unsigned char *in, unsigned int inl)
 {
-    if (ctx == NULL || ctx->cipher == NULL || ctx->cipher->prov == NULL)
-        return 0;
-
     /*
      * If the provided implementation has a ccipher function, we use it,
      * and translate its return value like this: 0 => -1, 1 => outlen
@@ -387,8 +384,12 @@ int EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      */
     int ret = -1;
     size_t outl = 0;
-    size_t blocksize = EVP_CIPHER_CTX_get_block_size(ctx);
+    size_t blocksize;
 
+    if (ctx == NULL || ctx->cipher == NULL || ctx->cipher->prov == NULL)
+        return 0;
+
+    blocksize = EVP_CIPHER_CTX_get_block_size(ctx);
     if (blocksize == 0)
         return 0;
 

@@ -251,17 +251,22 @@ struct rsa_imexport_types_st {
 static const struct rsa_imexport_types_st
     rsa_imexport_types[RSA_IMEXPORT_TYPE_COUNT]
     = {
-          [RSA_IMEXPORT_TYPE_OTHER] = {
+          /* RSA_IMEXPORT_TYPE_NONE */
+          { NULL, NULL, NULL },
+          /* RSA_IMEXPORT_TYPE_OTHER */
+          {
               rsa_other_import_types_list,
               rsa_other_import_types_decoder,
               rsa_other_export_types_list,
           },
-          [RSA_IMEXPORT_TYPE_KEY] = {
+          /* RSA_IMEXPORT_TYPE_KEY */
+          {
               rsa_key_import_types_list,
               rsa_key_import_types_decoder,
               rsa_key_export_types_list,
           },
-          [RSA_IMEXPORT_TYPE_ALL] = {
+          /* RSA_IMEXPORT_TYPE_ALL */
+          {
               rsa_all_import_types_list,
               rsa_all_import_types_decoder,
               rsa_all_export_types_list,
@@ -271,17 +276,22 @@ static const struct rsa_imexport_types_st
 static const struct rsa_imexport_types_st
     rsapss_imexport_types[RSA_IMEXPORT_TYPE_COUNT]
     = {
-          [RSA_IMEXPORT_TYPE_OTHER] = {
+          /* RSA_IMEXPORT_TYPE_NONE */
+          { NULL, NULL, NULL },
+          /* RSA_IMEXPORT_TYPE_OTHER */
+          {
               rsapss_other_import_types_list,
               rsapss_other_import_types_decoder,
               rsapss_other_export_types_list,
           },
-          [RSA_IMEXPORT_TYPE_KEY] = {
+          /* RSA_IMEXPORT_TYPE_KEY */
+          {
               rsapss_key_import_types_list,
               rsapss_key_import_types_decoder,
               rsapss_key_export_types_list,
           },
-          [RSA_IMEXPORT_TYPE_ALL] = {
+          /* RSA_IMEXPORT_TYPE_ALL */
+          {
               rsapss_all_import_types_list,
               rsapss_all_import_types_decoder,
               rsapss_all_export_types_list,

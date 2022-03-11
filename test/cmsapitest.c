@@ -330,6 +330,7 @@ static int test_decrypt_with_wrong_key(void)
     CMS_ContentInfo *content = NULL;
     BIO *contentbio = NULL;
     const EVP_CIPHER *cipher = EVP_aes_128_cbc();
+    int i;
 
     if (!TEST_ptr(certstack) || !TEST_ptr(msgbio))
         goto end;
@@ -341,7 +342,7 @@ static int test_decrypt_with_wrong_key(void)
     if (!TEST_ptr(content))
         goto end;
 
-    for (int i = 0; i < 1000; ++i) {
+    for (i = 0; i < 1000; ++i) {
         outmsgbio = BIO_new(BIO_s_mem());
         if (!TEST_false(CMS_decrypt(content, privkey2, cert, NULL, outmsgbio,
                             0)

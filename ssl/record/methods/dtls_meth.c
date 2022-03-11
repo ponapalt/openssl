@@ -1045,7 +1045,7 @@ static int dtls_increment_sequence_ctr(OSSL_RECORD_LAYER *rl)
     if (rl->version == DTLS1_3_VERSION)
         return tls_increment_sequence_ctr(rl);
 
-    if (rl->sequence >= 0xffffffffffffULL) {
+    if (rl->sequence >= UINT64_C(0xffffffffffff)) {
         RLAYERfatal(rl, SSL_AD_INTERNAL_ERROR, SSL_R_SEQUENCE_CTR_WRAPPED);
         return 0;
     }

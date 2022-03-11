@@ -14,6 +14,9 @@
  */
 #include "internal/deprecated.h"
 
+#include <stddef.h>              /* for size_t */
+#include <openssl/e_os2.h>       /* for uint8_t */
+
 #include <openssl/evp.h>
 #include <internal/endian.h>
 #include <prov/implementations.h>
@@ -43,7 +46,7 @@ static ossl_inline void mulx_ghash(uint64_t *a)
     }
 }
 
-#define aligned64(p) (((uintptr_t)p & 0x07) == 0)
+#define aligned64(p) (((ossl_ssize_t)p & 0x07) == 0)
 static ossl_inline void byte_reverse16(uint8_t *out, const uint8_t *in)
 {
     if (aligned64(out) && aligned64(in)) {
