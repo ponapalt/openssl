@@ -37,7 +37,6 @@
 /* sockaddr stuff  */
 #if defined(_WIN32)
 #include <winsock.h>
-#include <ws2ipdef.h>
 #include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
@@ -500,7 +499,7 @@ static int ssl_ech_servername_cb(SSL *s, int *ad, void *arg)
 #if !defined(OPENSSL_SYS_WINDOWS)
     struct tm *local_p = NULL;
 #else
-    errno_t grv;
+    struct tm *grv_p;
 #endif
 
 #if !defined(OPENSSL_SYS_WINDOWS)
@@ -513,10 +512,11 @@ static int ssl_ech_servername_cb(SSL *s, int *ad, void *arg)
             strcpy(lstr, "sometime");
     }
 #else
-    grv = gmtime_s(&local, &now);
-    if (grv != 0) {
+    grv_p = gmtime(&now);
+    if (grv_p == NULL) {
         strcpy(lstr, "sometime");
     } else {
+        local = *grv_p;
         srv = strftime(lstr, ECH_TIME_STR_LEN, "%c", &local);
         if (srv == 0)
             strcpy(lstr, "sometime");

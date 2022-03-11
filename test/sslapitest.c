@@ -11229,6 +11229,7 @@ static int test_set_tmp_dh(int idx)
     int dhauto = (idx == 3 || idx == 4) ? 1 : 0;
     int expected = (idx <= 2) ? 0 : 1;
     EVP_PKEY *dhpkey = NULL;
+    OSSL_PROVIDER *tlsprov;
 #ifndef OPENSSL_NO_DEPRECATED_3_0
     DH *dh = NULL;
 #else
@@ -11237,7 +11238,7 @@ static int test_set_tmp_dh(int idx)
         return 1;
 #endif
 
-    OSSL_PROVIDER *tlsprov = OSSL_PROVIDER_load(libctx, "tls-provider");
+    tlsprov = OSSL_PROVIDER_load(libctx, "tls-provider");
 
     if (!TEST_ptr(tlsprov))
         goto end;

@@ -968,8 +968,8 @@ static int ech_ingest_test(int run)
         || ((flush_time <= add_time) && !TEST_int_eq(keysaftr, 0))
         || ((flush_time > add_time) && !TEST_int_eq(keysaftr, 1)
             && !TEST_int_eq(keysaftr, 0))) {
-        TEST_info("Flush time: %lld, add_time: %lld", (long long)flush_time,
-            (long long)add_time);
+        TEST_info("Flush time: %I64d, add_time: %I64d", (__int64)flush_time,
+            (__int64)add_time);
         goto end;
     }
     rv = 1;
@@ -1056,7 +1056,7 @@ static int ech_test_file_read(int run)
     fullname = OPENSSL_malloc(fnlen);
     if (fullname == NULL)
         goto end;
-    snprintf(fullname, fnlen, "%s/%s", certsdir, ft->fname);
+    sprintf(fullname, "%s/%s", certsdir, ft->fname);
     if (verbose)
         TEST_info("testing read of %s", fullname);
     in = BIO_new_file(fullname, "r");
@@ -1253,7 +1253,7 @@ static int test_ech_roundtrip_helper(int idx, int combo)
     aeadind = idx % aeadsz;
     /* initialise early data stuff, just in case */
     memset(ed, 'A', sizeof(ed));
-    snprintf(suitestr, 100, "%s,%s,%s", kem_str_list[kemind],
+    sprintf(suitestr, "%s,%s,%s", kem_str_list[kemind],
         kdf_str_list[kdfind], aead_str_list[aeadind]);
     if (verbose)
         TEST_info("Doing: iter: %d, suite: %s", idx, suitestr);

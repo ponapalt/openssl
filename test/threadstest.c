@@ -389,7 +389,7 @@ static void reader_fn(int *iterations)
         val = (valp == NULL) ? 0 : *valp;
 
         if (oldval > val) {
-            TEST_info("rcu torture value went backwards! %llu : %llu", (unsigned long long)oldval, (unsigned long long)val);
+            TEST_info("rcu torture value went backwards! %llu : %llu", (uint64_t)oldval, (uint64_t)val);
             if (valp == NULL)
                 TEST_info("ossl_rcu_deref did return NULL!");
             rcu_torture_result = 0;
@@ -1370,7 +1370,7 @@ static void test_obj_create_worker(void)
 
     for (i = 0; i < 4; i++) {
         now = time(NULL);
-        snprintf(name, sizeof(name), "Time in Seconds = %ld", (long)now);
+        BIO_snprintf(name, sizeof(name), "Time in Seconds = %ld", (long)now);
         while (now == time(NULL))
             /* no-op */;
         nid = OBJ_create(NULL, NULL, name);

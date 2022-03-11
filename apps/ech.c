@@ -256,8 +256,8 @@ int ech_main(int argc, char **argv)
                 OPENSSL_free(ec);
                 goto end;
             }
-            BIO_printf(bio_err, "ECH entry: %d public_name: %s age: %lld%s%s\n",
-                oi_ind, pn, (long long)secs,
+            BIO_printf(bio_err, "ECH entry: %d public_name: %s age: %I64d%s%s\n",
+                oi_ind, pn, (__int64)secs,
                 has_priv ? " (has private key)" : "",
                 for_retry ? " (will be sent in retry-configs)" : "");
             BIO_printf(bio_err, "\t%s\n", ec);

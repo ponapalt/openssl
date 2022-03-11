@@ -43,9 +43,9 @@
  *
  * Caveat lector.
  *
- * Implementation relies on the fact that "long long" is 64-bit on
+ * Implementation relies on the fact that "__int64" is 64-bit on
  * both 32- and 64-bit platforms. If some compiler vendor comes up
- * with 128-bit long long, adjustment to sha.h would be required.
+ * with 128-bit __int64, adjustment to sha.h would be required.
  * As this implementation relies on 64-bit integer type, it's totally
  * inappropriate for platforms which don't support it, most notably
  * 16-bit platforms.
@@ -163,6 +163,7 @@ int SHA512_Final(unsigned char *out, SHA512_CTX *c)
 {
     unsigned char *p = (unsigned char *)c->u.p;
     size_t n = c->num;
+    uint8_t* cu;
 
     p[n] = 0x80; /* There always is a room for one */
     n++;
@@ -177,7 +178,7 @@ int SHA512_Final(unsigned char *out, SHA512_CTX *c)
     c->u.d[SHA_LBLOCK - 2] = c->Nh;
     c->u.d[SHA_LBLOCK - 1] = c->Nl;
 #else
-    uint8_t *cu = p + sizeof(c->u) - 16;
+    cu = p + sizeof(c->u) - 16;
 
     cu = OPENSSL_store_u64_be(cu, (uint64_t)c->Nh);
     cu = OPENSSL_store_u64_be(cu, (uint64_t)c->Nl);

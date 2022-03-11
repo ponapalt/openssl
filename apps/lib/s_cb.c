@@ -387,6 +387,7 @@ int ssl_print_point_formats(BIO *out, SSL *s)
 int ssl_print_groups(BIO *out, SSL *s, int noshared)
 {
     int i, ngroups, *groups, nid;
+    const char *name;
 
     ngroups = SSL_get1_groups(s, NULL);
     if (ngroups <= 0)
@@ -399,7 +400,7 @@ int ssl_print_groups(BIO *out, SSL *s, int noshared)
         if (i)
             BIO_puts(out, ":");
         nid = groups[i];
-        const char *name = SSL_group_to_name(s, nid);
+        name = SSL_group_to_name(s, nid);
         BIO_puts(out, ((name != NULL) ? name : "(null)"));
     }
     OPENSSL_free(groups);
@@ -413,7 +414,7 @@ int ssl_print_groups(BIO *out, SSL *s, int noshared)
         if (i)
             BIO_puts(out, ":");
         nid = SSL_get_shared_group(s, i);
-        const char *name = SSL_group_to_name(s, nid);
+        name = SSL_group_to_name(s, nid);
         BIO_puts(out, ((name != NULL) ? name : "(null)"));
     }
     if (ngroups == 0)

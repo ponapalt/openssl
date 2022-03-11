@@ -2918,7 +2918,7 @@ double app_tminterval(int stop, int usertime)
         tmstop.u.LowPart = now.dwLowDateTime;
         tmstop.u.HighPart = now.dwHighDateTime;
 
-        ret = (__int64)(tmstop.QuadPart - tmstart.QuadPart) * 1e-7;
+        ret = (int64_t)(tmstop.QuadPart - tmstart.QuadPart) * 1e-7;
     }
 
     return ret;

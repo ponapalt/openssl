@@ -332,11 +332,11 @@ static int b64_write(BIO *b, const char *in, int inl)
     int ret = 0;
     int n;
     int i;
+    int encoded_length;
+    int n_bytes_enc;
+    unsigned char *encoded;
     BIO_B64_CTX *ctx;
     BIO *next;
-    int encoded_length;
-    unsigned char *encoded;
-    int n_bytes_enc;
 
     ctx = (BIO_B64_CTX *)BIO_get_data(b);
     next = BIO_next(b);

@@ -492,9 +492,9 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
 void OPENSSL_cleanup(void)
 {
     do_global_cleanup = 1;
-#if defined(OSSL_CLEANUP_USING_DESTRUCTOR)
+#if defined(OSSL_CLEANUP_USING_DESTRUCTOR) && !defined(DO_NOT_SKIP_OPENSSL_CLEANUP)
     return;
-#endif /* defined(OSSL_CLEANUP_USING_DESTRUCTOR) */
+#endif /* defined(OSSL_CLEANUP_USING_DESTRUCTOR) && !defined(DO_NOT_SKIP_OPENSSL_CLEANUP) */
 
 #if defined(DO_NOT_SKIP_OPENSSL_CLEANUP)
     ossl_cleanup_destructor();

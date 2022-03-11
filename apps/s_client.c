@@ -3321,7 +3321,13 @@ re_start:
                 if ((k != 0) || (cbuf_len != 0)) {
                     int sockerr = get_last_socket_error();
 
+#if defined(EISCONN)
                     if (!tfo || sockerr != EISCONN) {
+#elif defined(WSAEISCONN)
+                    if (!tfo || sockerr != WSAEISCONN) {
+#else
+                    if (!tfo) {
+#endif
                         BIO_printf(bio_err, "write:errno=%d\n", sockerr);
                         goto shut;
                     }
@@ -3627,8 +3633,8 @@ static void print_ech_retry_configs(BIO *bio, SSL *s)
             BIO_printf(bio, "ECH: Error getting retry-config %d.\n", ind);
             goto end;
         }
-        BIO_printf(bio, "ECH: entry: %d public_name: %s age: %lld%s\n",
-            ind, pn, (long long)secs,
+        BIO_printf(bio, "ECH: entry: %d public_name: %s age: %I64d%s\n",
+            ind, pn, (__int64)secs,
             has_priv ? " (has private key)" : "");
         BIO_printf(bio, "ECH: \t%s\n", ec);
         OPENSSL_free(pn);
@@ -3978,7 +3984,7 @@ static int ocsp_resp_cb(SSL *s, void *arg)
         for (i = 0; i < num; i++)
             print_ocsp_response(arg, sk_OCSP_RESPONSE_value(sk_resp, i));
     } else {
-        const unsigned char *p;
+        unsigned char *p;
         int len = SSL_get_tlsext_status_ocsp_resp(s, &p);
 
         BIO_puts(arg, "OCSP response: ");
@@ -3986,7 +3992,7 @@ static int ocsp_resp_cb(SSL *s, void *arg)
             BIO_puts(arg, "no OCSP response received\n");
             return 1;
         }
-        rsp = d2i_OCSP_RESPONSE(NULL, &p, len);
+        rsp = d2i_OCSP_RESPONSE(NULL, (const unsigned char **)&p, len);
         if (rsp == NULL) {
             BIO_puts(arg, "OCSP response parse error\n");
             BIO_dump_indent(arg, p, len, 4);
