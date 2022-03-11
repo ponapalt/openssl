@@ -19,21 +19,23 @@
 static void fuzz_fill_encode_ctx(EVP_ENCODE_CTX *ctx, int max_fill)
 {
     static int seeded = 0;
+    int num;
+    int i;
 
     if (!seeded) {
         srand((unsigned)time(NULL));
         seeded = 1;
     }
 
-    int num = rand() % (max_fill + 1);
+    num = rand() % (max_fill + 1);
     ctx->num = num;
 
-    for (int i = 0; i < num; i++)
+    for (i = 0; i < num; i++)
         ctx->enc_data[i] = (unsigned char)(rand() & 0xFF);
     ctx->length = (rand() % 80) + 1;
     ctx->line_num = rand() % (ctx->length + 1);
 }
-static inline uint32_t next_u32(uint32_t *state)
+static uint32_t next_u32(uint32_t *state)
 {
     *state = (*state * 1664525u) + 1013904223u;
     return *state;
@@ -166,31 +168,42 @@ static int test_encode_line_lengths_reinforced(void)
     /* Generous output buffers (Update + Final + newlines), plus a guard byte */
     unsigned char out_simd[9000 * 2 + 1] = { 0 };
     unsigned char out_ref[9000 * 2 + 1] = { 0 };
+    int t, i, partial_ctx_fill, ctx_len;
+    uint32_t r;
+    int inl;
+    unsigned char input[MAX_INPUT_LEN];
+    EVP_ENCODE_CTX *ctx_simd;
+    EVP_ENCODE_CTX *ctx_ref;
+    int outlen_simd, outlen_ref;
+    int finlen_simd, finlen_ref;
+    int ret_simd, ret_ref;
+    int total_ref, total_simd;
 
-    for (int t = 0; t < trials; t++) {
-        uint32_t r = next_u32(&seed);
-        int inl = r % MAX_INPUT_LEN;
+    for (t = 0; t < trials; t++) {
+        r = next_u32(&seed);
+        inl = r % MAX_INPUT_LEN;
         /* Fresh random input */
-        unsigned char input[MAX_INPUT_LEN];
 
-        for (int i = 0; i < inl; i++)
+        for (i = 0; i < inl; i++)
             input[i] = (unsigned char)(r % 256);
 
-        for (int partial_ctx_fill = 0; partial_ctx_fill <= 80;
+        for (partial_ctx_fill = 0; partial_ctx_fill <= 80;
             partial_ctx_fill += 1) {
-            for (int ctx_len = 1; ctx_len <= 80; ctx_len += 1) {
+            for (ctx_len = 1; ctx_len <= 80; ctx_len += 1) {
                 printf("Trial %d, input length %d, ctx length %d, partial ctx fill %d\n",
                     t + 1, inl, ctx_len, partial_ctx_fill);
-                EVP_ENCODE_CTX *ctx_simd = EVP_ENCODE_CTX_new();
-                EVP_ENCODE_CTX *ctx_ref = EVP_ENCODE_CTX_new();
+                ctx_simd = EVP_ENCODE_CTX_new();
+                ctx_ref = EVP_ENCODE_CTX_new();
 
                 fuzz_fill_encode_ctx(ctx_simd, partial_ctx_fill);
 
                 memset(out_simd, 0xCC, sizeof(out_simd)); /* poison to catch short writes */
                 memset(out_ref, 0xDD, sizeof(out_ref));
 
-                int outlen_simd = 0, outlen_ref = 0; /* bytes produced by Update */
-                int finlen_simd = 0, finlen_ref = 0; /* bytes produced by Final */
+                outlen_simd = 0;
+                outlen_ref = 0; /* bytes produced by Update */
+                finlen_simd = 0;
+                finlen_ref = 0; /* bytes produced by Final */
 
                 if (!ctx_simd || !ctx_ref) {
                     EVP_ENCODE_CTX_free(ctx_simd);
@@ -204,7 +217,7 @@ static int test_encode_line_lengths_reinforced(void)
                 ctx_simd->length = ctx_len;
                 ctx_ref->length = ctx_len;
 
-                for (int i = 0; i < 2; i++) {
+                for (i = 0; i < 2; i++) {
                     if (i % 2 == 0) {
                         /* Turn SRP alphabet OFF */
                         ctx_simd->flags &= ~EVP_ENCODE_CTX_USE_SRP_ALPHABET;
@@ -215,9 +228,9 @@ static int test_encode_line_lengths_reinforced(void)
                         ctx_ref->flags |= EVP_ENCODE_CTX_USE_SRP_ALPHABET;
                     }
 
-                    int ret_simd = EVP_EncodeUpdate(ctx_simd, out_simd, &outlen_simd,
+                    ret_simd = EVP_EncodeUpdate(ctx_simd, out_simd, &outlen_simd,
                         input, (int)inl);
-                    int ret_ref = evp_encodeupdate_old(ctx_ref, out_ref, &outlen_ref,
+                    ret_ref = evp_encodeupdate_old(ctx_ref, out_ref, &outlen_ref,
                         input, (int)inl);
 
                     if (!TEST_int_eq(ret_simd, ret_ref)
@@ -230,8 +243,8 @@ static int test_encode_line_lengths_reinforced(void)
                     evp_encodefinal_old(ctx_ref, out_ref + outlen_ref,
                         &finlen_ref);
 
-                    int total_ref = outlen_ref + finlen_ref;
-                    int total_simd = outlen_simd + finlen_simd;
+                    total_ref = outlen_ref + finlen_ref;
+                    total_simd = outlen_simd + finlen_simd;
 
                     if (!TEST_int_eq(finlen_simd, finlen_ref)
                         || !TEST_mem_eq(out_ref, total_ref, out_simd, total_simd))
