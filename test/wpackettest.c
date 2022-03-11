@@ -513,7 +513,7 @@ static int test_WPACKET_quic(void)
     /* QUIC sub-packet with 8-byte length prefix, containing a 8-byte vlint */
     if (!TEST_true(WPACKET_init(&pkt, buf))
         || !TEST_true(WPACKET_start_quic_sub_packet_bound(&pkt, OSSL_QUIC_VLINT_8B_MIN))
-        || !TEST_true(WPACKET_quic_write_vlint(&pkt, 0x2f77213f3f505ba5ULL))
+        || !TEST_true(WPACKET_quic_write_vlint(&pkt, 0x2f77213f3f505ba5Ui64))
         || !TEST_false(WPACKET_finish(&pkt))
         || !TEST_true(WPACKET_close(&pkt))
         || !TEST_false(WPACKET_close(&pkt))

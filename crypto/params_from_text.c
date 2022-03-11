@@ -252,7 +252,7 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
                     ok = BIO_printf(bio, "error getting value\n");
             } else {
                 if (OSSL_PARAM_get_uint64(p, &u))
-                    ok = BIO_printf(bio, "%llu\n", (unsigned long long int)u);
+                    ok = BIO_printf(bio, "%llu\n", (uint64_t)u);
                 else
                     ok = BIO_printf(bio, "error getting value\n");
             }
@@ -265,7 +265,7 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
                     ok = BIO_printf(bio, "error getting value\n");
             } else {
                 if (OSSL_PARAM_get_int64(p, &i))
-                    ok = BIO_printf(bio, "%lld\n", (long long int)i);
+                    ok = BIO_printf(bio, "%lld\n", (int64_t)i);
                 else
                     ok = BIO_printf(bio, "error getting value\n");
             }

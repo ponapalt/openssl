@@ -18,6 +18,7 @@
 #endif
 
 #include <openssl/opensslconf.h>
+#include <openssl/e_os2.h>
 
 /*
  * Engine support is gone. Definitions here are provided for the source code
@@ -39,27 +40,27 @@
 
 #define ENGINE_FUNC(ret_type, name, args, default_val) \
     OSSL_DEPRECATED_MESSAGE(#name ENGINE_INFO_MSG)     \
-    static inline ret_type name args                   \
+    static ossl_inline ret_type name args              \
     {                                                  \
         return default_val; /* stub return */          \
     }
 
 #define ENGINE_FUNC_NOARGS(ret_type, name, default_val) \
     OSSL_DEPRECATED_MESSAGE(#name ENGINE_INFO_MSG)      \
-    static inline ret_type name(void)                   \
+    static ossl_inline ret_type name(void)              \
     {                                                   \
         return default_val; /* stub return */           \
     }
 
 #define ENGINE_VOID_FUNC(name, args)               \
     OSSL_DEPRECATED_MESSAGE(#name ENGINE_INFO_MSG) \
-    static inline void name args                   \
+    static ossl_inline void name args              \
     {                                              \
     }
 
 #define ENGINE_VOID_FUNC_NOARGS(name)              \
     OSSL_DEPRECATED_MESSAGE(#name ENGINE_INFO_MSG) \
-    static inline void name(void)                  \
+    static ossl_inline void name(void)             \
     {                                              \
     }
 #else /* OPENSSL_ENGINE_STUBS */
@@ -1157,6 +1158,7 @@ ENGINE_FUNC(int, EVP_PKEY_set1_engine, (EVP_PKEY * pkey, ENGINE *e), 0)
 /* ENGINE *EVP_PKEY_get0_engine(const EVP_PKEY *pkey); */
 ENGINE_FUNC(ENGINE *, EVP_PKEY_get0_engine, (const EVP_PKEY *pkey), NULL)
 
+#ifndef OPENSSL_NO_DEPRECATED_1_1_0
 /* ENGINE *DH_get0_engine(DH *d); */
 ENGINE_FUNC(ENGINE *, DH_get0_engine, (DH * d), NULL)
 
@@ -1168,13 +1170,16 @@ ENGINE_FUNC(ENGINE *, DSA_get0_engine, (DSA * d), NULL)
 
 /* ENGINE *EC_KEY_get0_engine(const EC_KEY *eckey); */
 ENGINE_FUNC(ENGINE *, EC_KEY_get0_engine, (const EC_KEY *eckey), NULL)
+#endif
 
 /* const ENGINE *OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader); */
 ENGINE_FUNC(const ENGINE *, OSSL_STORE_LOADER_get0_engine, (const OSSL_STORE_LOADER *loader),
     NULL)
 
+#ifndef OPENSSL_NO_DEPRECATED_1_1_0
 /* int RAND_set_rand_engine(ENGINE *engine); */
 ENGINE_FUNC(int, RAND_set_rand_engine, (ENGINE * engine), 0)
+#endif
 
 /*
  * int TS_CONF_set_crypto_device(CONF *conf, const char *section,
@@ -1186,8 +1191,10 @@ ENGINE_FUNC(int, TS_CONF_set_crypto_device,
 /* int TS_CONF_set_default_engine(const char *name); */
 ENGINE_FUNC(int, TS_CONF_set_default_engine, (const char *name), 0)
 
+#ifndef OPENSSL_NO_DEPRECATED_1_1_0
 /* int ERR_load_ENGINE_strings(void); */
 ENGINE_FUNC_NOARGS(int, ERR_load_ENGINE_strings, 1)
+#endif
 
 /* int SSL_CTX_set_client_cert_engine(SSL_CTX *ctx, ENGINE *e); */
 ENGINE_FUNC(int, SSL_CTX_set_client_cert_engine, (SSL_CTX * ctx, ENGINE *e), 0)

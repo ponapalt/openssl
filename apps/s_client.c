@@ -3150,7 +3150,13 @@ re_start:
                 if ((k != 0) || (cbuf_len != 0)) {
                     int sockerr = get_last_socket_error();
 
+#if defined(EISCONN)
                     if (!tfo || sockerr != EISCONN) {
+#elif defined(WSAEISCONN)
+                    if (!tfo || sockerr != WSAEISCONN) {
+#else
+                    if (!tfo) {
+#endif
                         BIO_printf(bio_err, "write:errno=%d\n", sockerr);
                         goto shut;
                     }
