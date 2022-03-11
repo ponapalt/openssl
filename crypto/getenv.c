@@ -15,6 +15,19 @@
 #include "internal/cryptlib.h"
 #include "internal/e_os.h"
 
+/*
+ * _malloca()/_freea() allocate small blocks on the stack and larger ones on the
+ * heap.  They arrived with Visual Studio 2005; on older toolchains fall back to
+ * the OpenSSL allocator so that the application's memory hooks still apply.
+ */
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+#define OSSL_TMP_ALLOC(sz) _malloca(sz)
+#define OSSL_TMP_FREE(p) _freea(p)
+#else
+#define OSSL_TMP_ALLOC(sz) OPENSSL_malloc(sz)
+#define OSSL_TMP_FREE(p) OPENSSL_free(p)
+#endif
+
 char *ossl_safe_getenv(const char *name)
 {
 #if defined(_WIN32) && defined(CP_UTF8)
@@ -41,7 +54,7 @@ char *ossl_safe_getenv(const char *name)
         rsize = MultiByteToWideChar(curacp, dwFlags, name, -1, NULL, 0);
         /* if name is valid string and can be converted to wide string */
         if (rsize > 0)
-            namew = _malloca(rsize * sizeof(WCHAR));
+            namew = OSSL_TMP_ALLOC(rsize * sizeof(WCHAR));
 
         if (NULL != namew) {
             /* convert name to wide string */
@@ -52,7 +65,7 @@ char *ossl_safe_getenv(const char *name)
         }
 
         if (envlen > 0)
-            valw = _malloca(envlen * sizeof(WCHAR));
+            valw = OSSL_TMP_ALLOC(envlen * sizeof(WCHAR));
 
         if (NULL != valw) {
             /* if can get env value as wide string */
@@ -77,10 +90,10 @@ char *ossl_safe_getenv(const char *name)
         }
 
         if (NULL != namew)
-            _freea(namew);
+            OSSL_TMP_FREE(namew);
 
         if (NULL != valw)
-            _freea(valw);
+            OSSL_TMP_FREE(valw);
 
         return val;
     }
