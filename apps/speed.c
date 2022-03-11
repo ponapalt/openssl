@@ -54,6 +54,8 @@
  * While VirtualLock is available under the app partition (e.g. UWP),
  * the headers do not define the API. Define it ourselves instead.
  */
+#ifdef _MEMORYAPI_H_
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
 WINBASEAPI
 BOOL
 WINAPI
@@ -61,6 +63,8 @@ VirtualLock(
     _In_ LPVOID lpAddress,
     _In_ SIZE_T dwSize
     );
+#endif //!WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
+#endif //_MEMORYAPI_H_
 #endif
 
 #if defined(OPENSSL_SYS_LINUX)
