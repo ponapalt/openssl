@@ -64,7 +64,7 @@ static CT_TEST_FIXTURE *set_up(const char *const test_case_name)
     if (!TEST_ptr(fixture = OPENSSL_zalloc(sizeof(*fixture))))
         goto end;
     fixture->test_case_name = test_case_name;
-    fixture->epoch_time_in_ms = 1580335307000ULL; /* Wed 29 Jan 2020 10:01:47 PM UTC */
+    fixture->epoch_time_in_ms = 1580335307000UI64; /* Wed 29 Jan 2020 10:01:47 PM UTC */
     if (!TEST_ptr(fixture->ctlog_store = CTLOG_STORE_new())
         || !TEST_int_eq(
             CTLOG_STORE_load_default_file(fixture->ctlog_store), 1))
@@ -395,7 +395,7 @@ static int test_verify_multiple_scts(void)
 static int test_verify_fails_for_future_sct(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->epoch_time_in_ms = 1365094800000ULL; /* Apr 4 17:00:00 2013 GMT */
+    fixture->epoch_time_in_ms = 1365094800000UI64; /* Apr 4 17:00:00 2013 GMT */
     fixture->certs_dir = certs_dir;
     fixture->certificate_file = "embeddedSCTs1.pem";
     fixture->issuer_file = "embeddedSCTs1_issuer.pem";
@@ -573,7 +573,7 @@ static int test_ctlog_store_add0_log_validates_sct(void)
     if (!TEST_ptr(ct_policy_ctx = CT_POLICY_EVAL_CTX_new()))
         goto end;
     CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(ct_policy_ctx, store);
-    CT_POLICY_EVAL_CTX_set_time(ct_policy_ctx, 1580335307000ULL);
+    CT_POLICY_EVAL_CTX_set_time(ct_policy_ctx, 1580335307000Ui64);
 
     if (!TEST_ptr(cert = load_pem_cert(certs_dir, "embeddedSCTs1.pem")))
         goto end;

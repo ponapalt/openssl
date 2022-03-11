@@ -914,54 +914,22 @@ const char *X509_VERIFY_PARAM_get0_name(const X509_VERIFY_PARAM *param)
  */
 
 static const X509_VERIFY_PARAM default_table[] = {
-    {
-        .name = "code_sign", /* Code sign parameters */
-        .purpose = X509_PURPOSE_CODE_SIGN,
-        .trust = X509_TRUST_OBJECT_SIGN,
-        .depth = -1,
-        .auth_level = -1,
-    },
-    {
-        .name = "default", /* X509 default parameters */
-        .flags = X509_V_FLAG_TRUSTED_FIRST,
-        .depth = 100,
-        .auth_level = -1,
-    },
-    {
-        .name = "pkcs7", /* S/MIME sign parameters */
-        .purpose = X509_PURPOSE_SMIME_SIGN,
-        .trust = X509_TRUST_EMAIL,
-        .depth = -1,
-        .auth_level = -1,
-    },
-    {
-        .name = "smime_encrypt", /* S/MIME encryption parameters */
-        .purpose = X509_PURPOSE_SMIME_ENCRYPT,
-        .trust = X509_TRUST_EMAIL,
-        .depth = -1,
-        .auth_level = -1,
-    },
-    {
-        .name = "smime_sign", /* S/MIME signature parameters */
-        .purpose = X509_PURPOSE_SMIME_SIGN,
-        .trust = X509_TRUST_EMAIL,
-        .depth = -1,
-        .auth_level = -1,
-    },
-    {
-        .name = "ssl_client", /* SSL/TLS client parameters */
-        .purpose = X509_PURPOSE_SSL_CLIENT,
-        .trust = X509_TRUST_SSL_CLIENT,
-        .depth = -1,
-        .auth_level = -1,
-    },
-    {
-        .name = "ssl_server", /* SSL/TLS server parameters */
-        .purpose = X509_PURPOSE_SSL_SERVER,
-        .trust = X509_TRUST_SSL_SERVER,
-        .depth = -1,
-        .auth_level = -1,
-    }
+    /* name,            check_time, inh_flags, flags,
+       purpose,                     trust,                   depth, auth_level */
+    { "code_sign",      0, 0, 0,
+      X509_PURPOSE_CODE_SIGN,       X509_TRUST_OBJECT_SIGN,  -1,   -1 }, /* Code sign parameters */
+    { "default",        0, 0, X509_V_FLAG_TRUSTED_FIRST,
+      0,                            0,                       100,  -1 }, /* X509 default parameters */
+    { "pkcs7",          0, 0, 0,
+      X509_PURPOSE_SMIME_SIGN,      X509_TRUST_EMAIL,        -1,   -1 }, /* S/MIME sign parameters */
+    { "smime_encrypt",     0, 0, 0,
+      X509_PURPOSE_SMIME_ENCRYPT,   X509_TRUST_EMAIL,        -1,   -1 }, /* S/MIME encryption parameters */
+    { "smime_sign",     0, 0, 0,
+      X509_PURPOSE_SMIME_SIGN,      X509_TRUST_EMAIL,        -1,   -1 }, /* S/MIME signature parameters */
+    { "ssl_client",     0, 0, 0,
+      X509_PURPOSE_SSL_CLIENT,      X509_TRUST_SSL_CLIENT,   -1,   -1 }, /* SSL/TLS client parameters */
+    { "ssl_server",     0, 0, 0,
+      X509_PURPOSE_SSL_SERVER,      X509_TRUST_SSL_SERVER,   -1,   -1 }  /* SSL/TLS server parameters */
 };
 
 static STACK_OF(X509_VERIFY_PARAM) *param_table = NULL;

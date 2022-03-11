@@ -156,13 +156,13 @@ void print_param_value(const OSSL_PARAM *p, int indent)
     switch (p->data_type) {
     case OSSL_PARAM_UNSIGNED_INTEGER:
         if (OSSL_PARAM_get_uint64(p, &u))
-            BIO_printf(bio_out, "%llu\n", (unsigned long long int)u);
+            BIO_printf(bio_out, "%llu\n", (uint64_t)u);
         else
             BIO_puts(bio_out, "error getting value\n");
         break;
     case OSSL_PARAM_INTEGER:
         if (OSSL_PARAM_get_int64(p, &i))
-            BIO_printf(bio_out, "%lld\n", (long long int)i);
+            BIO_printf(bio_out, "%lld\n", (int64_t)i);
         else
             BIO_puts(bio_out, "error getting value\n");
         break;
