@@ -37,7 +37,6 @@
 /* sockaddr stuff  */
 #if defined(_WIN32)
 #include <winsock.h>
-#include <ws2ipdef.h>
 #include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
@@ -501,7 +500,7 @@ static int ssl_ech_servername_cb(SSL *s, int *ad, void *arg)
 #if !defined(OPENSSL_SYS_WINDOWS)
     struct tm *local_p = NULL;
 #else
-    errno_t grv;
+    struct tm *grv_p;
 #endif
 
 #if !defined(OPENSSL_SYS_WINDOWS)
@@ -514,10 +513,11 @@ static int ssl_ech_servername_cb(SSL *s, int *ad, void *arg)
             strcpy(lstr, "sometime");
     }
 #else
-    grv = gmtime_s(&local, &now);
-    if (grv != 0) {
+    grv_p = gmtime(&now);
+    if (grv_p == NULL) {
         strcpy(lstr, "sometime");
     } else {
+        local = *grv_p;
         srv = strftime(lstr, ECH_TIME_STR_LEN, "%c", &local);
         if (srv == 0)
             strcpy(lstr, "sometime");
@@ -3225,9 +3225,11 @@ static long int count_reads_callback(BIO *bio, int cmd, const char *argp, size_t
 
 static int rpk_enable(SSL *con)
 {
+    int i;
+
     if (!SSL_dane_enable(con, NULL))
         return 0;
-    for (int i = 0; i < sk_OPENSSL_STRING_num(rpk_files); ++i) {
+    for (i = 0; i < sk_OPENSSL_STRING_num(rpk_files); ++i) {
         const char *file = sk_OPENSSL_STRING_value(rpk_files, i);
 
         if (!load_rpk_file(con, file))

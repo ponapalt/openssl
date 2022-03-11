@@ -447,10 +447,11 @@ static void scan_ext_flags(const X509 *x509, uint32_t *flags)
 {
     OPENSSL_LHASH *h = NULL;
     uint8_t ex_bitset[(NUM_NID + 7) / 8];
+    int i;
 
     memset(ex_bitset, 0, sizeof(ex_bitset));
     /* A certificate MUST NOT include more than one instance of an extension. */
-    for (int i = 0; i < X509_get_ext_count(x509); i++) {
+    for (i = 0; i < X509_get_ext_count(x509); i++) {
         const X509_EXTENSION *ex = X509_get_ext(x509, i);
         const ASN1_OBJECT *a = X509_EXTENSION_get_object(ex);
         int nid = OBJ_obj2nid(a);
@@ -548,6 +549,8 @@ int ossl_x509v3_cache_extensions(const X509 *const_x)
     NAME_CONSTRAINTS *tmp_nc;
     STACK_OF(DIST_POINT) *tmp_crldp = NULL;
     X509_SIG_INFO tmp_siginf;
+    STACK_OF(IPAddressFamily) *tmp_rfc3779_addr = NULL;
+    struct ASIdentifiers_st *tmp_rfc3779_asid = NULL;
 
 #ifdef tsan_ld_acq
     /* Fast lock-free check, see end of the function for details. */
@@ -735,12 +738,12 @@ int ossl_x509v3_cache_extensions(const X509 *const_x)
         tmp_ex_flags |= EXFLAG_INVALID;
 
 #ifndef OPENSSL_NO_RFC3779
-    STACK_OF(IPAddressFamily) *tmp_rfc3779_addr
+    tmp_rfc3779_addr
         = X509_get_ext_d2i(const_x, NID_sbgp_ipAddrBlock, &i, NULL);
     if (tmp_rfc3779_addr == NULL && i != -1)
         tmp_ex_flags |= EXFLAG_INVALID;
 
-    struct ASIdentifiers_st *tmp_rfc3779_asid
+    tmp_rfc3779_asid
         = X509_get_ext_d2i(const_x, NID_sbgp_autonomousSysNum, &i, NULL);
     if (tmp_rfc3779_asid == NULL && i != -1)
         tmp_ex_flags |= EXFLAG_INVALID;
