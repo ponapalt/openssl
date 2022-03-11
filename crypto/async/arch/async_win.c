@@ -35,13 +35,21 @@ void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn,
         *free_fn = NULL;
 }
 
+typedef BOOL (WINAPI *OSConvertFiberToThread)(VOID);
+
 void async_local_cleanup(void)
 {
+    OSConvertFiberToThread pConvertFiberToThread;
     async_ctx *ctx = async_get_ctx();
+
     if (ctx != NULL) {
         async_fibre *fibre = &ctx->dispatcher;
         if (fibre != NULL && fibre->fibre != NULL && fibre->converted) {
-            ConvertFiberToThread();
+            pConvertFiberToThread = (OSConvertFiberToThread)
+                GetProcAddress(GetModuleHandleA("kernel32"),
+                    "ConvertFiberToThread");
+            if (pConvertFiberToThread != NULL)
+                pConvertFiberToThread();
             fibre->fibre = NULL;
         }
     }

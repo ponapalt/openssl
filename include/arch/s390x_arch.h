@@ -60,19 +60,19 @@ int s390x_ed448_mul(unsigned char x_dst[57],
  * is not supported, the corresponding field elements are zero.
  */
 struct OPENSSL_s390xcap_st {
-    unsigned long long stfle[4];
-    unsigned long long kimd[2];
-    unsigned long long klmd[2];
-    unsigned long long km[2];
-    unsigned long long kmc[2];
-    unsigned long long kmac[2];
-    unsigned long long kmctr[2];
-    unsigned long long kmo[2];
-    unsigned long long kmf[2];
-    unsigned long long prno[2];
-    unsigned long long kma[2];
-    unsigned long long pcc[2];
-    unsigned long long kdsa[2];
+    unsigned __int64 stfle[4];
+    unsigned __int64 kimd[2];
+    unsigned __int64 klmd[2];
+    unsigned __int64 km[2];
+    unsigned __int64 kmc[2];
+    unsigned __int64 kmac[2];
+    unsigned __int64 kmctr[2];
+    unsigned __int64 kmo[2];
+    unsigned __int64 kmf[2];
+    unsigned __int64 prno[2];
+    unsigned __int64 kma[2];
+    unsigned __int64 pcc[2];
+    unsigned __int64 kdsa[2];
 };
 
 #if defined(__GNUC__) && defined(__linux)
@@ -95,7 +95,7 @@ extern int OPENSSL_s390xcex_nodev;
 #define S390X_STFLE_MAX 3
 
 /* convert facility bit number or function code to bit mask */
-#define S390X_CAPBIT(i) (1ULL << (63 - (i) % 64))
+#define S390X_CAPBIT(i) (1UI64 << (63 - (i) % 64))
 
 #endif
 
