@@ -364,7 +364,7 @@ static int afalg_fin_cipher_aio(afalg_aio *aio, int sfd, unsigned char *buf,
                          *
                          * because long long int should always be at least 64 bit this should work
                          */
-                        long long int op_ret = events[0].res;
+                        uint64_t op_ret = events[0].res;
 
                         /*
                          * Retries exceed for -EBUSY or unrecoverable error
