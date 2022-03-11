@@ -920,7 +920,7 @@ int OSSL_PARAM_get_uint64(const OSSL_PARAM *p, uint64_t *val)
                      * point values.
                      */
                     && d < (double)(UINT64_MAX - 65535) + 65536.0
-                    && d == (uint64_t)d) {
+                    && d == (int64_t)d) {
                 *val = (uint64_t)d;
                 return 1;
             }
@@ -997,7 +997,7 @@ int OSSL_PARAM_set_uint64(OSSL_PARAM *p, uint64_t val)
         case sizeof(double):
             if ((val >> real_shift()) == 0) {
                 p->return_size = sizeof(double);
-                *(double *)p->data = (double)val;
+                *(double *)p->data = (double)(int64_t)val;
                 return 1;
             }
             err_inexact;
@@ -1201,7 +1201,7 @@ int OSSL_PARAM_get_double(const OSSL_PARAM *p, double *val)
         case sizeof(uint64_t):
             u64 = *(const uint64_t *)p->data;
             if ((u64 >> real_shift()) == 0) {
-                *val = (double)u64;
+                *val = (double)(int64_t)u64;
                 return 1;
             }
             err_inexact;
@@ -1263,7 +1263,7 @@ int OSSL_PARAM_set_double(OSSL_PARAM *p, double val)
             p->return_size = sizeof(double);
             return 1;
         }
-        if (val != (uint64_t)val) {
+        if (val < 0.0 || val != (int64_t)val) {
             err_inexact;
             return 0;
         }

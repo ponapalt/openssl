@@ -1779,12 +1779,12 @@ static int test_bw_limit(void)
                               sendlen > TEST_SINGLE_WRITE_SIZE ? TEST_SINGLE_WRITE_SIZE
                                                                : sendlen,
                               &written)) {
-                TEST_info("Retrying to send: %llu", (unsigned long long) sendlen);
+                TEST_info("Retrying to send: %llu", (uint64_t) sendlen);
                 if (!TEST_int_eq(SSL_get_error(clientquic, 0), SSL_ERROR_WANT_WRITE))
                     goto err;
             } else {
                 sendlen -= written;
-                TEST_info("Remaining to send: %llu", (unsigned long long) sendlen);
+                TEST_info("Remaining to send: %llu", (uint64_t) sendlen);
             }
         } else {
             SSL_handle_events(clientquic);
@@ -1796,16 +1796,16 @@ static int test_bw_limit(void)
                                    &readbytes)
             && readbytes > 1) {
             recvlen -= readbytes;
-            TEST_info("Remaining to recv: %llu", (unsigned long long) recvlen);
+            TEST_info("Remaining to recv: %llu", (uint64_t) recvlen);
         } else {
-            TEST_info("No progress on recv: %llu", (unsigned long long) recvlen);
+            TEST_info("No progress on recv: %llu", (uint64_t) recvlen);
         }
         ossl_quic_tserver_tick(qtserv);
     }
     real_bw = TEST_TRANSFER_DATA_SIZE / qtest_get_stopwatch_time();
 
     TEST_info("BW limit: %d Bytes/ms Real bandwidth reached: %llu Bytes/ms",
-              TEST_BW_LIMIT, (unsigned long long)real_bw);
+              TEST_BW_LIMIT, (uint64_t)real_bw);
 
     if (!TEST_uint64_t_lt(real_bw, TEST_BW_LIMIT))
         goto err;
@@ -2304,8 +2304,8 @@ static int test_tparam(int idx)
             || !TEST_ptr(strstr(info.reason, ctx.t->expect_fail))) {
             TEST_error("expected connection closure information mismatch"
                        " during TPARAM test: flags=%llu ec=%llu reason='%s'",
-                       (unsigned long long)info.flags,
-                       (unsigned long long)info.error_code,
+                       (uint64_t)info.flags,
+                       (uint64_t)info.error_code,
                        info.reason);
             goto err;
         }
@@ -2316,11 +2316,11 @@ err:
     if (!testresult) {
         if (ctx.t->expect_fail != NULL)
             TEST_info("failed during test for id=%llu, op=%d, bl=%zu, "
-                      "expected failure='%s'", (unsigned long long)ctx.t->id,
+                      "expected failure='%s'", (uint64_t)ctx.t->id,
                       ctx.t->op, ctx.t->buf_len, ctx.t->expect_fail);
         else
             TEST_info("failed during test for id=%llu, op=%d, bl=%zu",
-                      (unsigned long long)ctx.t->id, ctx.t->op, ctx.t->buf_len);
+                      (uint64_t)ctx.t->id, ctx.t->op, ctx.t->buf_len);
     }
 
     ossl_quic_tserver_free(s);
