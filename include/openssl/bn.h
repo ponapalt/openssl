@@ -42,7 +42,7 @@ typedef unsigned long BN_ULONG;
  * 64-bit processor other than LP64 ABI
  */
 #ifdef SIXTY_FOUR_BIT
-typedef unsigned long long BN_ULONG;
+typedef unsigned __int64 BN_ULONG;
 #define BN_BYTES 8
 #endif
 

@@ -76,11 +76,11 @@ DEFINE_RUN_ONCE_STATIC(init_info_strings)
 
     cpu_info_append(CPUINFO_PREFIX
         "OPENSSL_ia32cap=0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx",
-        (unsigned long long)OPENSSL_ia32cap_P[0] | (unsigned long long)OPENSSL_ia32cap_P[1] << 32,
-        (unsigned long long)OPENSSL_ia32cap_P[2] | (unsigned long long)OPENSSL_ia32cap_P[3] << 32,
-        (unsigned long long)OPENSSL_ia32cap_P[4] | (unsigned long long)OPENSSL_ia32cap_P[5] << 32,
-        (unsigned long long)OPENSSL_ia32cap_P[6] | (unsigned long long)OPENSSL_ia32cap_P[7] << 32,
-        (unsigned long long)OPENSSL_ia32cap_P[8] | (unsigned long long)OPENSSL_ia32cap_P[9] << 32);
+        (uint64_t)OPENSSL_ia32cap_P[0] | (uint64_t)OPENSSL_ia32cap_P[1] << 32,
+        (uint64_t)OPENSSL_ia32cap_P[2] | (uint64_t)OPENSSL_ia32cap_P[3] << 32,
+        (uint64_t)OPENSSL_ia32cap_P[4] | (uint64_t)OPENSSL_ia32cap_P[5] << 32,
+        (uint64_t)OPENSSL_ia32cap_P[6] | (uint64_t)OPENSSL_ia32cap_P[7] << 32,
+        (uint64_t)OPENSSL_ia32cap_P[8] | (uint64_t)OPENSSL_ia32cap_P[9] << 32);
     if ((env = getenv("OPENSSL_ia32cap")) != NULL)
         cpu_info_append(" env:%s", env);
 #elif defined(__arm__) || defined(__arm) || defined(__aarch64__)
