@@ -294,7 +294,7 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
         if (OPENSSL_gmtime(&t, &tm) == NULL) {
             TEST_info("%s:%d - OPENSSL_gmtime can't handle time of %lld, "
                       "skipping test.",
-                      file, line, (long long) test_time);
+                      file, line, (int64_t) test_time);
             return 0;
         }
     }
@@ -317,8 +317,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "verifying notBefore %lld, notAfter %lld at time %lld\n",
                   file, line,
                   expected_value ? "failed" : "succeeded",
-                  (long long)notBefore, (long long)notAfter,
-                  (long long)test_time);
+                  (int64_t)notBefore, (int64_t)notAfter,
+                  (int64_t)test_time);
         return 1;
     }
     error = 0;
@@ -327,8 +327,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "when verifying notBefore %lld, notAfter %lld at time %lld\n",
                   file, line,
                   expected_value ? "failed" : "succeeded",
-                  (long long)notBefore, (long long)notAfter,
-                  (long long)test_time);
+                  (int64_t)notBefore, (int64_t)notAfter,
+                  (int64_t)test_time);
         return 1;
     }
     if (error != expected_error) {
@@ -337,8 +337,8 @@ static int test_a_time(X509_STORE_CTX *ctx, X509 *x509,
                   "%lld at time %lld\n",
                   file, line,
                   error, expected_error,
-                  (long long)notBefore, (long long)notAfter,
-                  (long long)test_time);
+                  (int64_t)notBefore, (int64_t)notAfter,
+                  (int64_t)test_time);
         return 1;
     }
     return 0;
@@ -402,22 +402,22 @@ static int do_x509_time_tests(CERT_TEST_DATA *tests, size_t ntests,
 
             if (OPENSSL_gmtime(&t, &tm) == NULL) {
                 TEST_info("OPENSSL_gmtime can't handle notBefore time of %lld, skipping test",
-                          (long long) tests[i].NotBefore);
+                          (int64_t) tests[i].NotBefore);
                 continue;
             }
             if (OPENSSL_gmtime(&t2, &tm) == NULL) {
                 TEST_info("OPENSSL_gmtime can't handle notAfter time of %lld, skipping test",
-                          (long long) tests[i].NotAfter);
+                          (int64_t) tests[i].NotAfter);
                 continue;
             }
         }
 
         if (ASN1_TIME_adj(nb, (time_t)tests[i].NotBefore, 0, 0) == NULL) {
-            TEST_info("Could not create NotBefore for time %lld\n", (long long) tests[i].NotBefore);
+            TEST_info("Could not create NotBefore for time %lld\n", (int64_t) tests[i].NotBefore);
             goto err;
         }
         if (ASN1_TIME_adj(na, (time_t)tests[i].NotAfter, 0, 0) == NULL) {
-            TEST_info("Could not create NotAfter for time %lld\n", (long long) tests[i].NotBefore);
+            TEST_info("Could not create NotAfter for time %lld\n", (int64_t) tests[i].NotBefore);
             goto err;
         }
 
