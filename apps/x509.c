@@ -406,6 +406,7 @@ int x509_main(int argc, char **argv)
     unsigned long certflag = 0;
     int preserve_dates = 0;
     OPTION_CHOICE o;
+    int confquiet = 0;
 #ifndef OPENSSL_NO_MD5
     int subject_hash_old = 0, issuer_hash_old = 0;
 #endif
@@ -828,7 +829,7 @@ int x509_main(int argc, char **argv)
      * `-extensions` was specified.  Otherwise, the requested extensions
      * section must be present.
      */
-    int confquiet = extsect == NULL && extfile == NULL;
+    confquiet = extsect == NULL && extfile == NULL;
     if (newout)
         extconf = load_ext_conf(extfile, extsect, confquiet);
 
@@ -1463,7 +1464,7 @@ static int print_x509v3_exts(BIO *bio, X509 *x, const char *ext_names)
     ret = X509V3_extensions_print(bio, NULL, exts2, 0, 0);
 end:
     sk_X509_EXTENSION_free(exts2);
-    OPENSSL_free(names);
+    OPENSSL_free((void *)names);
     OPENSSL_free(tmp_ext_names);
     return ret;
 }

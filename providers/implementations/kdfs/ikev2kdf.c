@@ -562,10 +562,10 @@ static int IKEV2_GEN(OSSL_LIB_CTX *libctx, unsigned char *seedkey, const size_t 
     size_t outl = 0;
     int ret = 0;
     unsigned char *nonce = NULL;
-    OSSL_PARAM params[] = {
-        OSSL_PARAM_construct_utf8_string("digest", md_name, 0),
-        OSSL_PARAM_construct_end()
-    };
+    OSSL_PARAM params[2];
+
+    params[0] = OSSL_PARAM_construct_utf8_string("digest", md_name, 0);
+    params[1] = OSSL_PARAM_construct_end();
 
     nonce = OPENSSL_malloc(ni_len + nr_len);
     if (nonce == NULL)
@@ -623,10 +623,10 @@ static int IKEV2_REKEY(OSSL_LIB_CTX *libctx, unsigned char *seedkey, const size_
     EVP_MAC *mac = NULL;
     size_t outl = 0;
     int ret = 0;
-    OSSL_PARAM params[] = {
-        OSSL_PARAM_construct_utf8_string("digest", md_name, 0),
-        OSSL_PARAM_construct_end()
-    };
+    OSSL_PARAM params[2];
+
+    params[0] = OSSL_PARAM_construct_utf8_string("digest", md_name, 0);
+    params[1] = OSSL_PARAM_construct_end();
 
     mac = EVP_MAC_fetch(libctx, "HMAC", NULL);
     if ((mac == NULL)
@@ -698,10 +698,10 @@ static int IKEV2_DKM(OSSL_LIB_CTX *libctx, unsigned char *dkm, const size_t len_
     size_t md_size = 0;
     int value = 0;
     unsigned char counter = 1;
-    OSSL_PARAM params[] = {
-        OSSL_PARAM_construct_utf8_string("digest", (char *)EVP_MD_name(evp_md), 0),
-        OSSL_PARAM_construct_end()
-    };
+    OSSL_PARAM params[2];
+
+    params[0] = OSSL_PARAM_construct_utf8_string("digest", (char *)EVP_MD_name(evp_md), 0);
+    params[1] = OSSL_PARAM_construct_end();
 
     value = EVP_MD_size(evp_md);
     if (value <= 0)

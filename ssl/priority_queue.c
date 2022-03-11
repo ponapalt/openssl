@@ -10,6 +10,8 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 #include <assert.h>
+#include <stddef.h> /* for size_t */
+#include <openssl/e_os2.h> /* for uint8_t */
 #include "internal/priority_queue.h"
 #include "internal/safe_math.h"
 #include "internal/numbers.h"

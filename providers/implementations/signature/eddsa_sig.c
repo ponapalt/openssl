@@ -1089,7 +1089,7 @@ static int s390x_ed25519_digestsign(const ECX_KEY *edkey, unsigned char *sig,
             unsigned char sig[64];
             unsigned char priv[32];
         } ed25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
 
     memset(&param, 0, sizeof(param));
@@ -1114,7 +1114,7 @@ static int s390x_ed448_digestsign(const ECX_KEY *edkey, unsigned char *sig,
             unsigned char sig[128];
             unsigned char priv[64];
         } ed448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
 
     memset(&param, 0, sizeof(param));
@@ -1141,7 +1141,7 @@ static int s390x_ed25519_digestverify(const ECX_KEY *edkey,
             unsigned char sig[64];
             unsigned char pub[32];
         } ed25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
 
     memset(&param, 0, sizeof(param));
@@ -1166,7 +1166,7 @@ static int s390x_ed448_digestverify(const ECX_KEY *edkey,
             unsigned char sig[128];
             unsigned char pub[64];
         } ed448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
 
     memset(&param, 0, sizeof(param));

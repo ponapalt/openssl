@@ -84,7 +84,7 @@ int s390x_x25519_mul(unsigned char u_dst[32],
             unsigned char u_src[32];
             unsigned char d_src[32];
         } x25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     int rc;
 
@@ -117,7 +117,7 @@ int s390x_x448_mul(unsigned char u_dst[56],
             unsigned char u_src[64];
             unsigned char d_src[64];
         } x448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     int rc;
 
@@ -157,7 +157,7 @@ int s390x_ed25519_mul(unsigned char x_dst[32],
             unsigned char y_src[32];
             unsigned char d_src[32];
         } ed25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     int rc;
 
@@ -191,7 +191,7 @@ int s390x_ed448_mul(unsigned char x_dst[57],
             unsigned char y_src[64];
             unsigned char d_src[64];
         } ed448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     int rc;
 

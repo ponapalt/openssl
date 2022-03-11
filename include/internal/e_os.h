@@ -164,6 +164,13 @@ int snprintf(char *buf, size_t n, const char *fmt, ...);
 int vsnprintf(char *buf, size_t n, const char *fmt, va_list args);
 #endif
 
+/* va_copy is not available in MSVC before Visual Studio 2013 */
+#if defined(_MSC_VER) && _MSC_VER < 1800
+# ifndef va_copy
+#  define va_copy(dst, src) ((dst) = (src))
+# endif
+#endif
+
 #else /* The non-microsoft world */
 
 #if defined(OPENSSL_SYS_VXWORKS)
@@ -353,12 +360,20 @@ inline int nssgetpid(void)
  * There is no locale_t on NONSTOP.
  */
 #if defined(OPENSSL_SYS_WINDOWS)
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
 typedef _locale_t locale_t;
 #define freelocale _free_locale
 #define strcasecmp_l _stricmp_l
 #define strncasecmp_l _strnicmp_l
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
+#else
+/* Older MSVC versions do not have locale-specific or case-insensitive
+ * string comparison functions. */
+#ifndef OPENSSL_NO_LOCALE
+#define OPENSSL_NO_LOCALE
+#endif
+#endif
 #elif !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L \
     || defined(OPENSSL_SYS_TANDEM)
 #ifndef OPENSSL_NO_LOCALE

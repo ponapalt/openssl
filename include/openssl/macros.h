@@ -49,9 +49,14 @@
 #define OSSL_DEPRECATED_FOR(since, message) __declspec(deprecated)
 #define OSSL_DEPRECATED_MESSAGE(message) __declspec(deprecated)
 #endif
+#if _MSC_VER >= 1310
 #define OSSL_BEGIN_ALLOW_DEPRECATED \
     __pragma(warning(push)) __pragma(warning(disable : 4996))
 #define OSSL_END_ALLOW_DEPRECATED __pragma(warning(pop))
+#else
+#define OSSL_BEGIN_ALLOW_DEPRECATED 
+#define OSSL_END_ALLOW_DEPRECATED 
+#endif
 #elif defined(__GNUC__)
 #define OSSL_DEPRECATED(since) \
     __attribute__((deprecated("Since OpenSSL " #since)))
@@ -385,7 +390,11 @@
 #if defined(__GNUC__)
 #define OSSL_CRYPTO_ALLOC __attribute__((__malloc__))
 #elif defined(_MSC_VER)
+#if _MSC_VER >= 1400
 #define OSSL_CRYPTO_ALLOC __declspec(restrict)
+#else
+#define OSSL_CRYPTO_ALLOC
+#endif
 #else
 #define OSSL_CRYPTO_ALLOC
 #endif
