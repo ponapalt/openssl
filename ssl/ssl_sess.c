@@ -762,6 +762,7 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
 {
     int ret = 0;
     SSL_SESSION *s;
+    SSL_SESSION *evicted_head = NULL;
 
     /*
      * add just 1 reference count for the SSL_CTX's session cache even though
@@ -818,7 +819,6 @@ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *c)
      * that need their remove_session_cb called and their reference dropped
      * once the lock is released.
      */
-    SSL_SESSION *evicted_head = NULL;
 
     if (s == NULL) {
         /*
