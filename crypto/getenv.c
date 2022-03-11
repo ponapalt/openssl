@@ -41,7 +41,7 @@ char *ossl_safe_getenv(const char *name)
         rsize = MultiByteToWideChar(curacp, dwFlags, name, -1, NULL, 0);
         /* if name is valid string and can be converted to wide string */
         if (rsize > 0)
-            namew = _malloca(rsize * sizeof(WCHAR));
+            namew = malloc(rsize * sizeof(WCHAR));
 
         if (NULL != namew) {
             /* convert name to wide string */
@@ -52,7 +52,7 @@ char *ossl_safe_getenv(const char *name)
         }
 
         if (envlen > 0)
-            valw = _malloca(envlen * sizeof(WCHAR));
+            valw = malloc(envlen * sizeof(WCHAR));
 
         if (NULL != valw) {
             /* if can get env value as wide string */
@@ -77,10 +77,10 @@ char *ossl_safe_getenv(const char *name)
         }
 
         if (NULL != namew)
-            _freea(namew);
+            free(namew);
 
         if (NULL != valw)
-            _freea(valw);
+            free(valw);
 
         return val;
     }
