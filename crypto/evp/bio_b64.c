@@ -332,6 +332,9 @@ static int b64_write(BIO *b, const char *in, int inl)
     int ret = 0;
     int n;
     int i;
+    int encoded_length;
+    int n_bytes_enc;
+    unsigned char *encoded;
     BIO_B64_CTX *ctx;
     BIO *next;
 
@@ -386,7 +389,7 @@ static int b64_write(BIO *b, const char *in, int inl)
     if (in == NULL || inl <= 0)
         return 0;
 
-    int encoded_length = EVP_ENCODE_LENGTH(inl);
+    encoded_length = EVP_ENCODE_LENGTH(inl);
 
     if (ctx->encoded_buf == NULL || (size_t)encoded_length > ctx->encoded_buf_len) {
         OPENSSL_free(ctx->encoded_buf);
@@ -398,13 +401,13 @@ static int b64_write(BIO *b, const char *in, int inl)
         ctx->encoded_buf_len = encoded_length;
     }
 
-    unsigned char *encoded = ctx->encoded_buf;
+    encoded = ctx->encoded_buf;
 
     if (encoded == NULL) {
         ERR_raise(ERR_LIB_BIO, ERR_R_MALLOC_FAILURE);
         return -1;
     }
-    int n_bytes_enc = 0;
+    n_bytes_enc = 0;
     if (!EVP_EncodeUpdate(ctx->base64, encoded, &n_bytes_enc,
             (unsigned char *)in, inl)) {
         if (ret == 0)
