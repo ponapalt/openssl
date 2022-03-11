@@ -170,7 +170,7 @@ static int i2r_OSSL_DAY_TIME(X509V3_EXT_METHOD *method,
     if (dt->minute && !ASN1_INTEGER_get_int64(&s, dt->second))
         return 0;
     return BIO_printf(out, "%02lld:%02lld:%02lld",
-                      (long long int)h, (long long int)m, (long long int)s) > 0;
+                      (__int64)h, (__int64)m, (__int64)s) > 0;
 }
 
 static int i2r_OSSL_DAY_TIME_BAND(X509V3_EXT_METHOD *method,
@@ -388,7 +388,7 @@ static int i2r_OSSL_PERIOD(X509V3_EXT_METHOD *method,
                 if (p->weeks != NULL) {
                     if (!print_int_day_of_week(out, small_val))
                         return 0;
-                } else if (BIO_printf(out, "%lld", (long long int)small_val) <= 0) {
+                } else if (BIO_printf(out, "%lld", (__int64)small_val) <= 0) {
                     return 0;
                 }
             }
@@ -474,7 +474,7 @@ static int i2r_OSSL_PERIOD(X509V3_EXT_METHOD *method,
                     return 0;
                 if (i > 0 && !BIO_puts(out, ", "))
                     return 0;
-                if (!BIO_printf(out, "%lld", (long long int)small_val))
+                if (!BIO_printf(out, "%lld", (__int64)small_val))
                     return 0;
             }
             break;
@@ -526,7 +526,7 @@ static int i2r_OSSL_PERIOD(X509V3_EXT_METHOD *method,
                 return 0;
             if (i > 0 && !BIO_puts(out, ", "))
                 return 0;
-            if (BIO_printf(out, "%04lld", (long long int)small_val) <= 0)
+            if (BIO_printf(out, "%04lld", (__int64)small_val) <= 0)
                 return 0;
         }
     }
@@ -573,7 +573,7 @@ static int i2r_OSSL_TIME_SPEC(X509V3_EXT_METHOD *method,
     if (time->timeZone) {
         if (ASN1_INTEGER_get_int64(&tz, time->timeZone) != 1)
             return 0;
-        if (BIO_printf(out, "%*sTimezone: UTC%+03lld:00\n", indent, "", (long long int)tz) <= 0)
+        if (BIO_printf(out, "%*sTimezone: UTC%+03lld:00\n", indent, "", (__int64)tz) <= 0)
             return 0;
     }
     if (time->notThisTime > 0) {

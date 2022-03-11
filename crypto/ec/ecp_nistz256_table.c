@@ -23,8 +23,8 @@
 
 #if defined(__GNUC__)
 __attribute((aligned(4096)))
-#elif defined(_MSC_VER)
-__declspec(align(4096))
+/*#elif defined(_MSC_VER)
+__declspec(align(4096))*/
 #elif defined(__SUNPRO_C)
 # pragma align 4096(ecp_nistz256_precomputed)
 #endif

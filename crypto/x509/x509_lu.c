@@ -200,12 +200,11 @@ static uint64_t obj_ht_hash(HT_KEY *key)
 X509_STORE *X509_STORE_new(void)
 {
     X509_STORE *ret = OPENSSL_zalloc(sizeof(*ret));
-    HT_CONFIG htconf = {
-        .ht_free_fn = objs_ht_free,
-        .ht_hash_fn = obj_ht_hash,
-        .init_neighborhoods = X509_OBJS_HT_BUCKETS,
-        .no_rcu = 1,
-    };
+    HT_CONFIG htconf = {0};
+    htconf.ht_free_fn = objs_ht_free;
+    htconf.ht_hash_fn = obj_ht_hash;
+    htconf.init_neighborhoods = X509_OBJS_HT_BUCKETS;
+    htconf.no_rcu = 1;
 
     if (ret == NULL)
         return NULL;
@@ -791,6 +790,7 @@ STACK_OF(X509_OBJECT) *X509_STORE_get1_objects(X509_STORE *store)
 
 STACK_OF(X509) *X509_STORE_get1_all_certs(X509_STORE *store)
 {
+    int i;
     STACK_OF(X509) *sk = NULL;
 
     if (store == NULL) {
@@ -806,7 +806,7 @@ STACK_OF(X509) *X509_STORE_get1_all_certs(X509_STORE *store)
     if (store->objs_ht != NULL) {
         ossl_ht_foreach_until(store->objs_ht, obj_ht_foreach_certs, &sk);
     } else {
-        for (int i = 0; i < sk_X509_OBJECT_num(store->objs); i++) {
+        for (i = 0; i < sk_X509_OBJECT_num(store->objs); i++) {
             X509 *cert = X509_OBJECT_get0_X509(sk_X509_OBJECT_value(store->objs, i));
 
             if (cert != NULL
