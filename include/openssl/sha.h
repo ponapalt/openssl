@@ -104,7 +104,7 @@ unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
 #  elif defined(__arch64__)
 #   define SHA_LONG64 unsigned long
 #  else
-#   define SHA_LONG64 unsigned long long
+#   define SHA_LONG64 unsigned __int64
 #  endif
 
 typedef struct SHA512state_st {

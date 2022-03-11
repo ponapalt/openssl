@@ -52,7 +52,7 @@ typedef unsigned __int64 u64;
 #elif defined(__arch64__)
 typedef unsigned long u64;
 #else
-typedef unsigned long long u64;
+typedef unsigned __int64 u64;
 #endif
 
 #define ROUNDS  10

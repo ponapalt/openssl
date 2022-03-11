@@ -25,7 +25,7 @@
     defined(_WIN32_WINNT)
 #  if _WIN32_WINNT >= 0x0600
 #   define OPENSSL_THREADS_WINNT
-#  elif _WIN32_WINNT >= 0x0501
+#  elif _WIN32_WINNT >= 0x0400
 #   define OPENSSL_THREADS_WINNT
 #   define OPENSSL_THREADS_WINNT_LEGACY
 #  else

@@ -96,7 +96,7 @@ int ossl_print_attribute_value(BIO *out,
         if (BIO_printf(out, "%*s", indent, "") < 0)
             return 0;
         if (ASN1_ENUMERATED_get_int64(&int_val, av->value.integer) > 0) {
-            return BIO_printf(out, "%lld", (long long int)int_val) > 0;
+            return BIO_printf(out, "%lld", (int64_t)int_val) > 0;
         }
         str = av->value.integer;
         return ossl_bio_print_hex(out, str->data, str->length);

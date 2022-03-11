@@ -48,6 +48,9 @@ FILE *openssl_fopen(const char *filename, const char *mode)
 # if defined(_WIN32) && defined(CP_UTF8)
     len_0 = (int)strlen(filename) + 1;
 
+    if (filename == NULL)
+        return NULL;
+
     /*
      * Basically there are three cases to cover: a) filename is
      * pure ASCII string; b) actual UTF-8 encoded string and

@@ -217,6 +217,13 @@ extern "C" {
 #  define __owur
 # endif
 
+#ifndef INT64_C
+#define INT64_C(c) c ## i64
+#endif
+#ifndef UINT64_C
+#define UINT64_C(c) c ## ui64
+#endif
+
 /* Standard integer types */
 # define OPENSSL_NO_INTTYPES_H
 # define OPENSSL_NO_STDINT_H
