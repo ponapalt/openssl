@@ -424,7 +424,7 @@ static void reader_fn(int *iterations)
         val = (valp == NULL) ? 0 : *valp;
 
         if (oldval > val) {
-            TEST_info("rcu torture value went backwards! %llu : %llu", (unsigned long long)oldval, (unsigned long long)val);
+            TEST_info("rcu torture value went backwards! %llu : %llu", (uint64_t)oldval, (uint64_t)val);
             if (valp == NULL)
                 TEST_info("ossl_rcu_deref did return NULL!");
             rcu_torture_result = 0;
@@ -1564,9 +1564,9 @@ static void load_unload_fn(void)
 
 static int test_do_all_stress(void)
 {
-    do_all_ctx = OSSL_LIB_CTX_new();
     int ret = 0;
 
+    do_all_ctx = OSSL_LIB_CTX_new();
     if (!TEST_ptr(do_all_ctx))
         goto err;
 

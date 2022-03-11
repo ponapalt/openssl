@@ -49,6 +49,21 @@ static unsigned int real_shift(void)
 {
     return sizeof(double) == 4 ? 24 : 53;
 }
+
+/*
+ * Is the non-negative double d an exact integer?
+ *
+ * Casting straight back through an integer type would be undefined for the
+ * upper half of the uint64_t range, and older MSVC cannot convert a double to
+ * an unsigned 64-bit integer at all.  Every double at or above 2^53 is already
+ * integral, so only the values below that need the round trip, and those all
+ * fit comfortably in an int64_t.
+ */
+static int real_is_integral(double d)
+{
+    return d >= 9007199254740992.0 /* 2^53 */
+        || d == (double)(int64_t)d;
+}
 #endif
 
 OSSL_PARAM *OSSL_PARAM_locate(OSSL_PARAM *p, const char *key)
@@ -920,7 +935,7 @@ int OSSL_PARAM_get_uint64(const OSSL_PARAM *p, uint64_t *val)
                  * point values.
                  */
                 && d < (double)(UINT64_MAX - 65535) + 65536.0
-                && d == (uint64_t)d) {
+                && real_is_integral(d)) {
                 *val = (uint64_t)d;
                 return 1;
             }
@@ -997,7 +1012,7 @@ int OSSL_PARAM_set_uint64(OSSL_PARAM *p, uint64_t val)
         case sizeof(double):
             if ((val >> real_shift()) == 0) {
                 p->return_size = sizeof(double);
-                *(double *)p->data = (double)val;
+                *(double *)p->data = (double)(int64_t)val;
                 return 1;
             }
             err_inexact;
@@ -1201,7 +1216,7 @@ int OSSL_PARAM_get_double(const OSSL_PARAM *p, double *val)
         case sizeof(uint64_t):
             u64 = *(const uint64_t *)p->data;
             if ((u64 >> real_shift()) == 0) {
-                *val = (double)u64;
+                *val = (double)(int64_t)u64;
                 return 1;
             }
             err_inexact;
@@ -1263,7 +1278,7 @@ int OSSL_PARAM_set_double(OSSL_PARAM *p, double val)
             p->return_size = sizeof(double);
             return 1;
         }
-        if (val != (uint64_t)val) {
+        if (val < 0.0 || !real_is_integral(val)) {
             err_inexact;
             return 0;
         }

@@ -98,6 +98,7 @@ static const unsigned char parallelhash_encoded_string[] = {
 static int cshake_set_func_encode_string(const char *in,
     const uint8_t **out, size_t *outlen)
 {
+    int i;
     /*
      * A list of valid function names to encoded string mappings
      * See NIST SP800-185 Section 3.4
@@ -119,7 +120,7 @@ static int cshake_set_func_encode_string(const char *in,
      */
     if (in == NULL || in[0] == 0)
         return 1;
-    for (int i = 1; functionNameMap[i].name != NULL; ++i) {
+    for (i = 1; functionNameMap[i].name != NULL; ++i) {
         if (functionNameMap[i].name[0] == in[0]) {
             if (OPENSSL_strcasecmp(functionNameMap[i].name, in) == 0) {
                 *out = functionNameMap[i].encoding;

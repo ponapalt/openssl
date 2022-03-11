@@ -447,6 +447,7 @@ static int test_parse_ex_skey(void)
     EVP_SKEY *skey = NULL;
     const unsigned char *raw_key = NULL;
     size_t raw_key_len = 0;
+    size_t i;
     int ret = 0;
 
     if (in_file == NULL || mismatched_key_pass)
@@ -488,7 +489,7 @@ static int test_parse_ex_skey(void)
             goto err;
         if (!TEST_size_t_eq(raw_key_len, 32))
             goto err;
-        for (size_t i = 0; i < raw_key_len; i++) {
+        for (i = 0; i < raw_key_len; i++) {
             if (!TEST_uchar_eq(raw_key[i], 0x41))
                 goto err;
         }

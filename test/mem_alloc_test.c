@@ -185,8 +185,7 @@ static const struct array_aligned_alloc_vector {
 static int secure_memory_is_secure;
 
 #if USE_CUSTOM_ALLOC_FNS
-static void *my_malloc(const size_t num,
-    const char *const file, const int line)
+static void *my_malloc(size_t num, const char *file, int line)
 {
     void *const p = num > 0 ? malloc(num) : NULL;
 
@@ -230,7 +229,7 @@ static void *my_realloc(void *const addr, const size_t num,
     return p;
 }
 
-static void my_free(void *const addr, const char *const file, const int line)
+static void my_free(void *addr, const char *file, int line)
 {
 #if CUSTOM_FN_PRINT_CALLS
     if (file == test_fn || file == NULL
@@ -247,7 +246,8 @@ static void my_free(void *const addr, const char *const file, const int line)
 
 static bool check_zero_mem(char *p, size_t sz)
 {
-    for (size_t i = 0; i < sz; i++) {
+    size_t i;
+    for (i = 0; i < sz; i++) {
         if (p[i] != 0) {
             TEST_error("Non-zero byte %zu of %zu (%#04hhx)", i, sz, p[i]);
 
