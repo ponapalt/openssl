@@ -280,6 +280,7 @@ int ssl_load_ciphers(SSL_CTX *ctx)
     const ssl_cipher_table *t;
     EVP_KEYEXCH *kex = NULL;
     EVP_SIGNATURE *sig = NULL;
+    const EVP_MD *md;
 
     ctx->disabled_enc_mask = 0;
     for (i = 0, t = ssl_cipher_table_cipher; i < SSL_ENC_NUM_IDX; i++, t++) {
@@ -300,7 +301,7 @@ int ssl_load_ciphers(SSL_CTX *ctx)
          * if these algorithms are not available.
          */
         ERR_set_mark();
-        const EVP_MD *md = EVP_MD_fetch(ctx->libctx,
+        md = EVP_MD_fetch(ctx->libctx,
             OBJ_nid2sn(t->nid),
             ctx->propq);
         ERR_pop_to_mark();
@@ -1233,6 +1234,7 @@ static int ciphersuite_cb(const char *elem, int len, void *arg)
     const SSL_CIPHER *cipher;
     /* Arbitrary sized temp buffer for the cipher name. Should be big enough */
     char name[80];
+    int i;
 
     if (len > (int)(sizeof(name) - 1))
         /* Anyway return 1 so we can parse rest of the list */
@@ -1247,7 +1249,7 @@ static int ciphersuite_cb(const char *elem, int len, void *arg)
         return 1;
 
     /* Suppress duplicates */
-    for (int i = 0; i < sk_SSL_CIPHER_num(ciphersuites); ++i)
+    for (i = 0; i < sk_SSL_CIPHER_num(ciphersuites); ++i)
         if (sk_SSL_CIPHER_value(ciphersuites, i)->id == cipher->id)
             return 1;
 
