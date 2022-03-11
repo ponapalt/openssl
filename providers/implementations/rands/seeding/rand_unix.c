@@ -152,8 +152,8 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
     long duration;
     extern void s$sleep(long *_duration, short int *_code);
 #  else
-    long long duration;
-    extern void s$sleep2(long long *_duration, short int *_code);
+    int64_t duration;
+    extern void s$sleep2(int64_t *_duration, short int *_code);
 #  endif
 
     bytes_needed = ossl_rand_pool_bytes_needed(pool, 4 /*entropy_factor*/);

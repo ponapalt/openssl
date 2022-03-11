@@ -3541,15 +3541,15 @@ void ossl_quic_channel_raise_protocol_error_loc(QUIC_CHANNEL *ch,
         ERR_raise_data(ERR_LIB_SSL, err_reason,
                        "QUIC error code: 0x%llx%s%s%s "
                        "(triggered by frame type: 0x%llx%s%s%s), reason: \"%s\"",
-                       (unsigned long long) error_code,
+                       (uint64_t) error_code,
                        err_str_pfx, err_str, err_str_sfx,
-                       (unsigned long long) frame_type,
+                       (uint64_t) frame_type,
                        ft_str_pfx, ft_str, ft_str_sfx,
                        reason);
     } else {
         ERR_raise_data(ERR_LIB_SSL, err_reason,
                        "QUIC error code: 0x%llx%s%s%s, reason: \"%s\"",
-                       (unsigned long long) error_code,
+                       (uint64_t) error_code,
                        err_str_pfx, err_str, err_str_sfx,
                        reason);
     }
