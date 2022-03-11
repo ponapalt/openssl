@@ -145,8 +145,8 @@ static struct testdata tbl_testdata_pos_64bit[] = {
 
 /* ASSUMES SIGNED TIME_T */
 static struct testdata tbl_testdata_neg_64bit[] = {
-    { "19011213204551Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2147483649LL, -1, 0, },
-    { "19000101120000Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2208945600LL, -1, 0, },
+    { "19011213204551Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2147483649I64, -1, 0, },
+    { "19000101120000Z",   V_ASN1_GENERALIZEDTIME, V_ASN1_GENERALIZEDTIME, 1, (time_t)-2208945600I64, -1, 0, },
 };
 
 /* A baseline time to compare to */
@@ -439,8 +439,8 @@ static int convert_asn1_to_time_t(int idx)
     if (!TEST_time_t_eq(testdateutc, asn1_to_utc[idx].expected)) {
         TEST_info("test_asn1_string_to_time_t (%s) failed: expected %lli, got %lli\n",
                   asn1_to_utc[idx].input,
-                  (long long int)asn1_to_utc[idx].expected,
-                  (long long int)testdateutc);
+                  (__int64)asn1_to_utc[idx].expected,
+                  (__int64)testdateutc);
         return 0;
     }
     return 1;

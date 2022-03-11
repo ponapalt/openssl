@@ -38,7 +38,7 @@ struct pr_desc {
     /** Buffer size */
     size_t maxlen;
     /** "Write position", for proper %n support */
-    long long pos;
+    int64_t pos;
 };
 
 static int fmtstr(struct pr_desc *, const char *, int, int, int);
@@ -404,7 +404,7 @@ _dopr(char **sbuffer,
                     HANDLE_N(long);
                     break;
                 case DP_C_LLONG:
-                    HANDLE_N(long long);
+                    HANDLE_N(int64_t);
                     break;
                 case DP_C_SIZE:
                     HANDLE_N(ossl_ssize_t);
