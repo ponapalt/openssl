@@ -1194,7 +1194,7 @@ static int s390x_pkey_ecd_digestsign25519(EVP_MD_CTX *ctx,
             unsigned char sig[64];
             unsigned char priv[32];
         } ed25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     const ECX_KEY *edkey = evp_pkey_get_legacy(EVP_MD_CTX_get_pkey_ctx(ctx)->pkey);
     int rc;
@@ -1239,7 +1239,7 @@ static int s390x_pkey_ecd_digestsign448(EVP_MD_CTX *ctx,
             unsigned char sig[128];
             unsigned char priv[64];
         } ed448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     const ECX_KEY *edkey = evp_pkey_get_legacy(EVP_MD_CTX_get_pkey_ctx(ctx)->pkey);
     int rc;
@@ -1287,7 +1287,7 @@ static int s390x_pkey_ecd_digestverify25519(EVP_MD_CTX *ctx,
             unsigned char sig[64];
             unsigned char pub[32];
         } ed25519;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     const ECX_KEY *edkey = evp_pkey_get_legacy(EVP_MD_CTX_get_pkey_ctx(ctx)->pkey);
 
@@ -1319,7 +1319,7 @@ static int s390x_pkey_ecd_digestverify448(EVP_MD_CTX *ctx,
             unsigned char sig[128];
             unsigned char pub[64];
         } ed448;
-        unsigned long long buff[512];
+        uint64_t buff[512];
     } param;
     const ECX_KEY *edkey = evp_pkey_get_legacy(EVP_MD_CTX_get_pkey_ctx(ctx)->pkey);
 
