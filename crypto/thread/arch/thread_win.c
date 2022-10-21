@@ -144,44 +144,45 @@ void ossl_crypto_mutex_free(CRYPTO_MUTEX **mutex)
 
 CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
 {
-    CONDITION_VARIABLE *cv_p;
-
-    if ((cv_p = OPENSSL_zalloc(sizeof(*cv_p))) == NULL)
-        return NULL;
-    InitializeConditionVariable(cv_p);
+    HANDLE cv_p;
+	
+	cv_p = CreateEventA(NULL,TRUE,FALSE,NULL);
     return (CRYPTO_CONDVAR *)cv_p;
 }
 
 void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex)
 {
-    CONDITION_VARIABLE *cv_p;
-    CRITICAL_SECTION *mutex_p;
+    HANDLE cv_p;
+    //CRITICAL_SECTION *mutex_p;
 
-    cv_p = (CONDITION_VARIABLE *)cv;
-    mutex_p = (CRITICAL_SECTION *)mutex;
-    SleepConditionVariableCS(cv_p, mutex_p, INFINITE);
+    cv_p = (HANDLE)cv;
+    //mutex_p = (CRITICAL_SECTION *)mutex;
+    WaitForSingleObject(cv_p, INFINITE);
 }
 
 void ossl_crypto_condvar_broadcast(CRYPTO_CONDVAR *cv)
 {
-    CONDITION_VARIABLE *cv_p;
+    HANDLE cv_p;
 
-    cv_p = (CONDITION_VARIABLE *)cv;
-    WakeAllConditionVariable(cv_p);
+    cv_p = (HANDLE)cv;
+    PulseEvent(cv_p);
 }
 
 void ossl_crypto_condvar_free(CRYPTO_CONDVAR **cv)
 {
-    CONDITION_VARIABLE **cv_p;
+    HANDLE* cv_p;
 
-    cv_p = (CONDITION_VARIABLE **)cv;
-    OPENSSL_free(*cv_p);
+    cv_p = (HANDLE*)cv;
+    CloseHandle(*cv_p);
     *cv_p = NULL;
 }
 
 void ossl_crypto_mem_barrier(void)
 {
-    MemoryBarrier();
+    LONG Barrier;
+    __asm {
+        xchg Barrier, eax
+    }
 }
 
 #endif

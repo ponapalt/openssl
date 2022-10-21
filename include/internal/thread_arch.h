@@ -20,7 +20,7 @@
 #  define OPENSSL_THREADS_POSIX
 # elif defined(OPENSSL_THREADS) && defined(OPENSSL_SYS_WINDOWS) && \
     defined(_WIN32_WINNT)
-#  if _WIN32_WINNT >= 0x0600
+#  if _WIN32_WINNT >= 0x0400
 #   define OPENSSL_THREADS_WINNT
 #  else
 #   define OPENSSL_THREADS_NONE
