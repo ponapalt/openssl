@@ -169,8 +169,15 @@ static CRYPTO_ONCE master_once = CRYPTO_ONCE_STATIC_INIT;
  * @param arg
  *        Unused parameter.
  */
+static void clean_ctx_entry(ossl_uintmax_t idx, CTX_TABLE_ENTRY *ctxentry,
+                            void *arg)
+{
+    OPENSSL_free(*ctxentry);
+}
+
 static void clean_master_key_id(MASTER_KEY_ENTRY *entry)
 {
+    ossl_sa_CTX_TABLE_ENTRY_doall_arg(entry->ctx_table, clean_ctx_entry, NULL);
     ossl_sa_CTX_TABLE_ENTRY_free(entry->ctx_table);
 }
 
