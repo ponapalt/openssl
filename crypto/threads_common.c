@@ -392,6 +392,23 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
                                        (uintptr_t)ctx, data);
 }
 
+static CRYPTO_ONCE master_cleanup_once = CRYPTO_ONCE_STATIC_INIT;
+static int master_cleanup_done = 0;
+
+static void cleanup_master_key_once(void)
+{
+    if (master_key_init != 0 && !master_cleanup_done) {
+        CRYPTO_THREAD_cleanup_local(&master_key);
+        master_key_init = 0;
+        master_cleanup_done = 1;
+    }
+}
+
+void ossl_cleanup_master_key_tls(void)
+{
+    CRYPTO_THREAD_run_once(&master_cleanup_once, cleanup_master_key_once);
+}
+
 #ifdef FIPS_MODULE
 void CRYPTO_THREAD_clean_local_for_fips(void)
 {

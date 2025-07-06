@@ -672,11 +672,61 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
     return (*lock == ONCE_DONE);
 }
 
+/* TLS cleanup function management structures and globals */
+#define MAX_TLS_CLEANUP_ENTRIES 64
+
+typedef struct {
+    CRYPTO_THREAD_LOCAL key;
+    void (*cleanup)(void *);
+    BOOL used;
+} TLS_CLEANUP_ENTRY;
+
+static TLS_CLEANUP_ENTRY tls_cleanup_table[MAX_TLS_CLEANUP_ENTRIES];
+static CRITICAL_SECTION cleanup_table_lock;
+static BOOL cleanup_table_initialized = FALSE;
+
+/* Initialize cleanup table - called once */
+static void init_cleanup_table(void)
+{
+    if (!cleanup_table_initialized) {
+        InitializeCriticalSection(&cleanup_table_lock);
+        memset(tls_cleanup_table, 0, sizeof(tls_cleanup_table));
+        cleanup_table_initialized = TRUE;
+    }
+}
+
 int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
 {
+    int i;
+    
     *key = TlsAlloc();
     if (*key == TLS_OUT_OF_INDEXES)
         return 0;
+
+    /* Register cleanup function if provided */
+    if (cleanup != NULL) {
+        init_cleanup_table();
+        
+        EnterCriticalSection(&cleanup_table_lock);
+        
+        /* Find available entry and register cleanup function */
+        for (i = 0; i < MAX_TLS_CLEANUP_ENTRIES; i++) {
+            if (!tls_cleanup_table[i].used) {
+                tls_cleanup_table[i].key = *key;
+                tls_cleanup_table[i].cleanup = cleanup;
+                tls_cleanup_table[i].used = TRUE;
+                break;
+            }
+        }
+        
+        LeaveCriticalSection(&cleanup_table_lock);
+        
+        /* Return error if table is full */
+        if (i == MAX_TLS_CLEANUP_ENTRIES) {
+            TlsFree(*key);
+            return 0;
+        }
+    }
 
     return 1;
 }
@@ -715,6 +765,31 @@ int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
 
 int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
 {
+    int i;
+    
+    /* Execute cleanup function before freeing TLS key */
+    if (cleanup_table_initialized) {
+        EnterCriticalSection(&cleanup_table_lock);
+        
+        for (i = 0; i < MAX_TLS_CLEANUP_ENTRIES; i++) {
+            if (tls_cleanup_table[i].used && tls_cleanup_table[i].key == *key) {
+                void *data = TlsGetValue(*key);
+                if (data != NULL && tls_cleanup_table[i].cleanup != NULL) {
+                    /* Execute cleanup function */
+                    tls_cleanup_table[i].cleanup(data);
+                }
+                
+                /* Mark entry as unused */
+                tls_cleanup_table[i].used = FALSE;
+                tls_cleanup_table[i].cleanup = NULL;
+                break;
+            }
+        }
+        
+        LeaveCriticalSection(&cleanup_table_lock);
+    }
+
+    /* Free TLS key */
     if (TlsFree(*key) == 0)
         return 0;
 
