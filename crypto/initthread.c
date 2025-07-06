@@ -263,6 +263,8 @@ void OPENSSL_thread_stop_ex(OSSL_LIB_CTX *ctx)
     ossl_ctx_thread_stop(ctx);
 }
 
+extern void ossl_cleanup_master_key_tls(void);
+
 void OPENSSL_thread_stop(void)
 {
     if (destructor_key.sane != -1) {
@@ -273,6 +275,8 @@ void OPENSSL_thread_stop(void)
         init_thread_remove_handlers(hands);
         OPENSSL_free(hands);
     }
+
+    ossl_cleanup_master_key_tls();
 }
 
 void ossl_ctx_thread_stop(OSSL_LIB_CTX *ctx)
