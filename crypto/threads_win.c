@@ -14,6 +14,14 @@
 # endif
 #endif
 #include <assert.h>
+#include <openssl/crypto.h>
+#include <openssl/core.h>
+#include <crypto/cryptlib.h>
+#include "internal/common.h"
+#include "internal/thread_arch.h"
+#include "internal/threads_common.h"
+#include "internal/rcu.h"
+#include "rcu_internal.h"
 
 #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
 typedef struct tls_cleanup_entry_st {
@@ -121,15 +129,6 @@ static void ensure_tls_handler_registered(void)
 # undef NO_INTERLOCKEDOR64
 # define CRYPTO_ST_NO_INTERLOCKEDOR64
 #endif
-
-#include <openssl/crypto.h>
-#include <openssl/core.h>
-#include <crypto/cryptlib.h>
-#include "internal/common.h"
-#include "internal/thread_arch.h"
-#include "internal/threads_common.h"
-#include "internal/rcu.h"
-#include "rcu_internal.h"
 
 #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
 
@@ -419,14 +418,14 @@ static ossl_inline struct rcu_qp *get_hold_current_qp(CRYPTO_RCU_LOCK *lock)
     for (;;) {
         CRYPTO_atomic_load_int((int *)&lock->reader_idx, (int *)&qp_idx,
                                lock->rw_lock);
-        CRYPTO_atomic_add64(&lock->qp_group[qp_idx].users, (uint64_t)1, &tmp64,
-                            lock->rw_lock);
+        CRYPTO_atomic_add64((uint64_t *)&lock->qp_group[qp_idx].users,
+                            (uint64_t)1, &tmp64, lock->rw_lock);
         CRYPTO_atomic_load_int((int *)&lock->reader_idx, (int *)&tmp,
                                lock->rw_lock);
         if (qp_idx == tmp)
             break;
-        CRYPTO_atomic_add64(&lock->qp_group[qp_idx].users, (uint64_t)-1, &tmp64,
-                            lock->rw_lock);
+        CRYPTO_atomic_add64((uint64_t *)&lock->qp_group[qp_idx].users,
+                            (uint64_t)-1, &tmp64, lock->rw_lock);
     }
 
     return &lock->qp_group[qp_idx];
@@ -509,9 +508,9 @@ void ossl_rcu_read_unlock(CRYPTO_RCU_LOCK *lock)
         if (data->thread_qps[i].lock == lock) {
             data->thread_qps[i].depth--;
             if (data->thread_qps[i].depth == 0) {
-                CRYPTO_atomic_add64(&data->thread_qps[i].qp->users,
-                                    (uint64_t)-1, (uint64_t *)&ret,
-                                    lock->rw_lock);
+                CRYPTO_atomic_add64(
+                    (uint64_t *)&data->thread_qps[i].qp->users,
+                    (uint64_t)-1, (uint64_t *)&ret, lock->rw_lock);
                 OPENSSL_assert(ret >= 0);
                 data->thread_qps[i].qp = NULL;
                 data->thread_qps[i].lock = NULL;
@@ -601,7 +600,7 @@ void ossl_synchronize_rcu(CRYPTO_RCU_LOCK *lock)
 
     /* wait for the reader count to reach zero */
     do {
-        CRYPTO_atomic_load(&qp->users, &count, lock->rw_lock);
+        CRYPTO_atomic_load((uint64_t *)&qp->users, &count, lock->rw_lock);
     } while (count != (uint64_t)0);
 
     lock->next_to_retire++;
@@ -865,7 +864,7 @@ int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
 # endif
 }
 
-int CRYPTO_atomic_add64(volatile uint64_t *val, uint64_t op, uint64_t *ret,
+int CRYPTO_atomic_add64(uint64_t *val, uint64_t op, uint64_t *ret,
                         CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
@@ -884,7 +883,7 @@ int CRYPTO_atomic_add64(volatile uint64_t *val, uint64_t op, uint64_t *ret,
 # endif
 }
 
-int CRYPTO_atomic_and(volatile uint64_t *val, uint64_t op, uint64_t *ret,
+int CRYPTO_atomic_and(uint64_t *val, uint64_t op, uint64_t *ret,
                       CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
@@ -903,7 +902,7 @@ int CRYPTO_atomic_and(volatile uint64_t *val, uint64_t op, uint64_t *ret,
 # endif
 }
 
-int CRYPTO_atomic_or(volatile uint64_t *val, uint64_t op, uint64_t *ret,
+int CRYPTO_atomic_or(uint64_t *val, uint64_t op, uint64_t *ret,
                      CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
@@ -922,7 +921,7 @@ int CRYPTO_atomic_or(volatile uint64_t *val, uint64_t op, uint64_t *ret,
 # endif
 }
 
-int CRYPTO_atomic_load(volatile uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *lock)
+int CRYPTO_atomic_load(uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
     if (lock == NULL || !CRYPTO_THREAD_read_lock(lock))
@@ -938,7 +937,7 @@ int CRYPTO_atomic_load(volatile uint64_t *val, uint64_t *ret, CRYPTO_RWLOCK *loc
 # endif
 }
 
-int CRYPTO_atomic_store(volatile uint64_t *dst, uint64_t val, CRYPTO_RWLOCK *lock)
+int CRYPTO_atomic_store(uint64_t *dst, uint64_t val, CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
     if (lock == NULL || !CRYPTO_THREAD_read_lock(lock))
@@ -949,12 +948,12 @@ int CRYPTO_atomic_store(volatile uint64_t *dst, uint64_t val, CRYPTO_RWLOCK *loc
 
     return 1;
 # else
-    InterlockedExchange64(dst, val);
+    InterlockedExchange64((LONG64 volatile *)dst, val);
     return 1;
 # endif
 }
 
-int CRYPTO_atomic_load_int(volatile int *val, int *ret, CRYPTO_RWLOCK *lock)
+int CRYPTO_atomic_load_int(int *val, int *ret, CRYPTO_RWLOCK *lock)
 {
 # if (defined(NO_INTERLOCKEDOR64))
     if (lock == NULL || !CRYPTO_THREAD_read_lock(lock))
