@@ -15,6 +15,100 @@
 #endif
 #include <assert.h>
 
+#if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
+typedef struct tls_cleanup_entry_st {
+    DWORD tls_key;
+    void (*cleanup)(void *);
+    struct tls_cleanup_entry_st *next;
+} TLS_CLEANUP_ENTRY;
+
+static TLS_CLEANUP_ENTRY *tls_cleanup_registry = NULL;
+static CRITICAL_SECTION tls_registry_lock;
+static volatile LONG tls_registry_initialized = 0;
+
+static void init_tls_registry(void)
+{
+    if (InterlockedCompareExchange(&tls_registry_initialized, 1, 0) == 0) {
+        InitializeCriticalSection(&tls_registry_lock);
+    }
+}
+
+static void register_tls_cleanup(DWORD key, void (*cleanup)(void *))
+{
+    TLS_CLEANUP_ENTRY *entry;
+    
+    if (cleanup == NULL)
+        return;
+    
+    init_tls_registry();
+    
+    entry = OPENSSL_malloc(sizeof(*entry));
+    if (entry == NULL)
+        return;
+    
+    entry->tls_key = key;
+    entry->cleanup = cleanup;
+    
+    EnterCriticalSection(&tls_registry_lock);
+    entry->next = tls_cleanup_registry;
+    tls_cleanup_registry = entry;
+    LeaveCriticalSection(&tls_registry_lock);
+}
+
+static void unregister_tls_cleanup(DWORD key)
+{
+    TLS_CLEANUP_ENTRY **current, *entry;
+    
+    if (tls_registry_initialized == 0)
+        return;
+    
+    EnterCriticalSection(&tls_registry_lock);
+    current = &tls_cleanup_registry;
+    
+    while (*current != NULL) {
+        if ((*current)->tls_key == key) {
+            entry = *current;
+            *current = entry->next;
+            OPENSSL_free(entry);
+            break;
+        }
+        current = &((*current)->next);
+    }
+    LeaveCriticalSection(&tls_registry_lock);
+}
+
+static void tls_cleanup_thread_handler(void *arg)
+{
+    TLS_CLEANUP_ENTRY *entry;
+    
+    if (tls_registry_initialized == 0 || tls_cleanup_registry == NULL)
+        return;
+    
+    EnterCriticalSection(&tls_registry_lock);
+    entry = tls_cleanup_registry;
+    
+    while (entry != NULL) {
+        void *data = TlsGetValue(entry->tls_key);
+        DWORD error = GetLastError();
+        
+        if (data != NULL && error == ERROR_SUCCESS) {
+            entry->cleanup(data);
+        }
+        entry = entry->next;
+    }
+    LeaveCriticalSection(&tls_registry_lock);
+}
+
+static volatile LONG tls_handler_registered = 0;
+
+static void ensure_tls_handler_registered(void)
+{
+    if (InterlockedCompareExchange(&tls_handler_registered, 1, 0) == 0) {
+        ossl_init_thread_start(&tls_cleanup_registry, NULL, tls_cleanup_thread_handler);
+    }
+}
+#endif
+
 /*
  * VC++ 2008 or earlier x86 compilers do not have an inline implementation
  * of InterlockedOr64 for 32bit and will fail to run on Windows XP 32bit.
@@ -29,6 +123,7 @@
 #endif
 
 #include <openssl/crypto.h>
+#include <openssl/core.h>
 #include <crypto/cryptlib.h>
 #include "internal/common.h"
 #include "internal/thread_arch.h"
@@ -687,6 +782,13 @@ int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
     if (*key == TLS_OUT_OF_INDEXES)
         return 0;
 
+#if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
+    if (cleanup != NULL) {
+        register_tls_cleanup(*key, cleanup);
+        ensure_tls_handler_registered();
+    }
+#endif
+
     return 1;
 }
 
@@ -724,6 +826,10 @@ int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
 
 int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
 {
+#if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
+    unregister_tls_cleanup(*key);
+#endif
+
     if (TlsFree(*key) == 0)
         return 0;
 
