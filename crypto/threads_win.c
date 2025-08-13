@@ -657,6 +657,56 @@ void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
 # define ONCE_ININIT       1
 # define ONCE_DONE         2
 
+typedef struct win_tls_dtor_st {
+    CRYPTO_THREAD_LOCAL key;
+    void (*cleanup)(void *);
+    struct win_tls_dtor_st *next;
+} WIN_TLS_DTOR;
+static WIN_TLS_DTOR *ossl_win_tls_dtors = NULL;
+
+typedef struct win_tls_value_st {
+    WIN_TLS_DTOR *dtor;
+    struct win_tls_value_st *next;
+} WIN_TLS_VALUE;
+
+#if defined(_MSC_VER)
+static __declspec(thread) WIN_TLS_VALUE *ossl_win_thread_values = NULL;
+static __declspec(thread) int ossl_win_thread_registered = 0;
+#else
+static __thread WIN_TLS_VALUE *ossl_win_thread_values = NULL;
+static __thread int ossl_win_thread_registered = 0;
+#endif
+
+static void ossl_win_tls_thread_cleanup(void *arg)
+{
+    WIN_TLS_VALUE *curr;
+    WIN_TLS_VALUE *next;
+    void *val;
+
+    for (curr = ossl_win_thread_values; curr != NULL; curr = next) {
+        next = curr->next;
+        if (curr->dtor->cleanup != NULL) {
+            val = TlsGetValue(curr->dtor->key);
+            if (val != NULL) {
+                TlsSetValue(curr->dtor->key, NULL);
+                curr->dtor->cleanup(val);
+            }
+        }
+        OPENSSL_free(curr);
+    }
+    ossl_win_thread_values = NULL;
+    ossl_win_thread_registered = 0;
+}
+
+static int ossl_win_register_thread_cleanup(void)
+{
+    if (ossl_win_thread_registered)
+        return 1;
+    if (!ossl_init_thread_start(NULL, NULL, ossl_win_tls_thread_cleanup))
+        return 0;
+    ossl_win_thread_registered = 1;
+    return 1;
+}
 /*
  * We don't use InitOnceExecuteOnce because that isn't available in WinXP which
  * we still have to support.
@@ -683,9 +733,28 @@ int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
 
 int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
 {
+    WIN_TLS_DTOR *dtor;
+
     *key = TlsAlloc();
     if (*key == TLS_OUT_OF_INDEXES)
         return 0;
+
+    if (cleanup == NULL)
+        return 1;
+
+    dtor = OPENSSL_malloc(sizeof(*dtor));
+    if (dtor == NULL) {
+        TlsFree(*key);
+        *key = TLS_OUT_OF_INDEXES;
+        return 0;
+    }
+
+    do {
+        dtor->next = ossl_win_tls_dtors;
+    } while (InterlockedCompareExchangePointer((void **)&ossl_win_tls_dtors,
+                                               dtor, dtor->next) != dtor->next);
+    dtor->key = *key;
+    dtor->cleanup = cleanup;
 
     return 1;
 }
@@ -716,16 +785,76 @@ void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
 
 int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
 {
+    WIN_TLS_DTOR *dtor;
+    WIN_TLS_VALUE *curr;
+    WIN_TLS_VALUE **prev;
+
     if (TlsSetValue(*key, val) == 0)
         return 0;
 
+    if (val == NULL) {
+        prev = &ossl_win_thread_values;
+        for (curr = *prev; curr != NULL; curr = curr->next) {
+            if (curr->dtor->key == *key) {
+                *prev = curr->next;
+                OPENSSL_free(curr);
+                break;
+            }
+            prev = &curr->next;
+        }
+        return 1;
+    }
+
+    for (dtor = ossl_win_tls_dtors; dtor != NULL; dtor = dtor->next) {
+        if (dtor->key == *key)
+            break;
+    }
+    if (dtor == NULL || dtor->cleanup == NULL)
+        return 1;
+
+    if (!ossl_win_register_thread_cleanup())
+        return 0;
+
+    for (curr = ossl_win_thread_values; curr != NULL; curr = curr->next) {
+        if (curr->dtor == dtor)
+            return 1;
+    }
+
+    curr = OPENSSL_malloc(sizeof(*curr));
+    if (curr == NULL)
+        return 0;
+    curr->dtor = dtor;
+    curr->next = ossl_win_thread_values;
+    ossl_win_thread_values = curr;
     return 1;
 }
 
 int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
 {
+    WIN_TLS_DTOR *curr;
+    WIN_TLS_VALUE *valnode;
+    WIN_TLS_VALUE **prev;
+
+    for (curr = ossl_win_tls_dtors; curr != NULL; curr = curr->next) {
+        if (curr->key == *key) {
+            InterlockedExchangePointer((void **)&curr->cleanup, NULL);
+            break;
+        }
+    }
+
+    prev = &ossl_win_thread_values;
+    for (valnode = *prev; valnode != NULL; valnode = valnode->next) {
+        if (valnode->dtor->key == *key) {
+            *prev = valnode->next;
+            OPENSSL_free(valnode);
+            break;
+        }
+        prev = &valnode->next;
+    }
+
     if (TlsFree(*key) == 0)
         return 0;
+    *key = TLS_OUT_OF_INDEXES;
 
     return 1;
 }
