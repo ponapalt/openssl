@@ -412,3 +412,18 @@ void CRYPTO_THREAD_clean_local(void)
         CRYPTO_THREAD_set_local(&master_key, NULL);
     }
 }
+
+
+void CRYPTO_THREAD_clean_local_for_ssp(void)
+{
+    MASTER_KEY_ENTRY *mkey;
+
+    /*
+     * If we never initialized the master key, there
+     * is no data to clean, so we are done here
+     */
+    if (master_key_init == 0)
+        return;
+
+    CRYPTO_THREAD_cleanup_local(&master_key);
+}
