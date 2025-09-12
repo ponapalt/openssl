@@ -27,12 +27,33 @@
  * multiple copies and producing a duplicate-symbol link error.
  */
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+
 #include <stdio.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <string.h>
-#include <openssl/bio.h>
+#include "internal/numbers.h"
 #include <openssl/crypto.h>
+
+/*
+ * Compatibility with the older toolchains this file exists for.  Note that
+ * <stdint.h> must not be included here: it does not exist before VS2010, so
+ * SIZE_MAX comes from "internal/numbers.h" above.
+ */
+#if defined(_MSC_VER)
+# if _MSC_VER < 1800
+   /* va_copy is not available in MSVC before VS2013 */
+#  ifndef va_copy
+#   define va_copy(dst, src) ((dst) = (src))
+#  endif
+# endif
+# if _MSC_VER < 1400
+   /* _TRUNCATE is not available in MSVC before VS2005 */
+#  ifndef _TRUNCATE
+#   define _TRUNCATE ((size_t)-1)
+#  endif
+# endif
+#endif
 
 /*
  * _MSC_VER described here:
@@ -52,7 +73,7 @@
  * https://stackoverflow.com/questions/2915672/snprintf-and-visual-studio-2010
  *
  */
-int msvc_translate_printf_format(const char *format, const char **out,
+static int msvc_translate_printf_format(const char *format, const char **out,
     char **tmp)
 {
     /* Valid printf conversion specifiers, grouped by category: signed
@@ -63,21 +84,46 @@ int msvc_translate_printf_format(const char *format, const char **out,
     char *dst = NULL, *q = NULL;
 
     /*
-     * The VS 2013 CRT does not understand the C99 z, t and j length
-     * modifiers. Translate z and t to I (both are pointer-sized on Windows)
-     * and j to I64 (intmax_t is 64 bits). Every input character expands to
-     * at most three output characters (j -> I64), so 3 * length is a safe
-     * bound for the buffer.
+     * The pre-2015 CRTs do not understand the C99 length modifiers, and the
+     * oldest ones (VC6 and friends) do not understand ll or hh either.
+     * Translate:
+     *
+     *   z, t -> I    (both are pointer-sized on Windows)
+     *   j    -> I64  (intmax_t is 64 bits)
+     *   ll   -> I64
+     *   hh   -> nothing (the argument is promoted to int anyway, so the bare
+     *                    conversion specifier does the right thing)
+     *
+     * Every input character expands to at most three output characters
+     * (j -> I64, ll -> I64), so 3 * length is a safe bound for the buffer.
      *
      * This is done in a single pass: nothing is allocated until the first
      * modifier is seen, so formats that need no translation return the
      * original string untouched. EMIT_CHAR() appends a character to the
-     * output once the buffer exists; before that it is a no-op.
+     * output once the buffer exists; before that it is a no-op. ALLOC_BUF()
+     * creates the buffer and flushes everything preceding the modifier that
+     * starts at m.
      */
 #define EMIT_CHAR(c)     \
     do {                 \
         if (dst != NULL) \
             *q++ = (c);  \
+    } while (0)
+
+#define ALLOC_BUF(m)                                            \
+    do {                                                        \
+        if (dst == NULL) {                                      \
+            size_t len = strlen(format);                        \
+                                                                \
+            if (len > (SIZE_MAX - 1) / 3) /* static analysis */  \
+                return 0;                                       \
+            dst = (char *)OPENSSL_malloc(3 * len + 1);          \
+            if (dst == NULL)                                    \
+                return 0;                                       \
+            q = dst;                                            \
+            memcpy(q, format, (size_t)((m) - format));          \
+            q += (m) - format;                                  \
+        }                                                       \
     } while (0)
 
     *out = format;
@@ -98,33 +144,39 @@ int msvc_translate_printf_format(const char *format, const char **out,
         }
         EMIT_CHAR('%');
         while (*p != '\0' && strchr(conv, *p) == NULL) {
+            const char *m = p;
             char c = *p++;
-            if (c != 'z' && c != 't' && c != 'j') { /* verbatim */
-                EMIT_CHAR(c);
-                continue;
-            }
-            if (dst == NULL) { /* first modifier: allocate + flush prefix */
-                size_t len = strlen(format);
-                if (len > (SIZE_MAX - 1) / 3) /* make static analysis happy */
-                    return 0;
-                dst = (char *)OPENSSL_malloc(3 * len + 1);
-                if (dst == NULL)
-                    return 0;
-                q = dst;
-                memcpy(q, format, (size_t)(p - 1 - format));
-                q += p - 1 - format;
-            }
-            EMIT_CHAR('I');
-            if (c == 'j') {
+
+            if (c == 'l' && *p == 'l') { /* ll -> I64 */
+                p++;
+                ALLOC_BUF(m);
+                EMIT_CHAR('I');
                 EMIT_CHAR('6');
                 EMIT_CHAR('4');
+                continue;
             }
+            if (c == 'h' && *p == 'h') { /* hh -> nothing */
+                p++;
+                ALLOC_BUF(m);
+                continue;
+            }
+            if (c == 'z' || c == 't' || c == 'j') {
+                ALLOC_BUF(m);
+                EMIT_CHAR('I');
+                if (c == 'j') {
+                    EMIT_CHAR('6');
+                    EMIT_CHAR('4');
+                }
+                continue;
+            }
+            EMIT_CHAR(c); /* verbatim */
         }
         if (*p != '\0') { /* copy the conversion specifier */
             EMIT_CHAR(*p);
             p++;
         }
     }
+#undef ALLOC_BUF
 #undef EMIT_CHAR
 
     if (dst != NULL) {
@@ -133,6 +185,42 @@ int msvc_translate_printf_format(const char *format, const char **out,
         *tmp = dst;
     }
     return 1;
+}
+
+/*
+ * Return the number of characters the formatted output would need, not
+ * counting the NUL terminator, or -1 on error.  The format string must
+ * already have been through msvc_translate_printf_format().
+ */
+static int msvc_vscprintf(const char *fmt, va_list args)
+{
+#if !defined(_MSC_VER) || _MSC_VER >= 1300
+    return _vscprintf(fmt, args);
+#else
+    /*
+     * VC6 and older have no _vscprintf(), so the length has to be discovered
+     * the hard way: format into a scratch buffer, growing it until the output
+     * fits.  _vsnprintf() returns -1 for as long as it does not.
+     */
+    size_t sz = 256;
+
+    while (sz <= 1024 * 1024) {
+        va_list args_copy;
+        char *scratch = (char *)OPENSSL_malloc(sz);
+        int ret;
+
+        if (scratch == NULL)
+            return -1;
+        va_copy(args_copy, args);
+        ret = _vsnprintf(scratch, sz, fmt, args_copy);
+        va_end(args_copy);
+        OPENSSL_free(scratch);
+        if (ret >= 0)
+            return ret;
+        sz *= 2;
+    }
+    return -1;
+#endif
 }
 
 int vsnprintf(char *buf, size_t n, const char *format, va_list args)
@@ -144,15 +232,28 @@ int vsnprintf(char *buf, size_t n, const char *format, va_list args)
 
     if (!msvc_translate_printf_format(format, &fmt, &fmt_alloc))
         goto done;
+
     va_copy(args_copy, args);
-    count = _vscprintf(fmt, args_copy);
+    count = msvc_vscprintf(fmt, args_copy);
     va_end(args_copy);
 
     if (count < 0)
         goto done;
 
-    if (n > 0)
+    if (n > 0) {
+#if !defined(_MSC_VER) || _MSC_VER >= 1400
         (void)_vsnprintf_s(buf, n, _TRUNCATE, fmt, args);
+#else
+        /*
+         * VC6 to VS2003: _vsnprintf() does not NUL-terminate when the output
+         * is truncated, but C99 requires it.
+         */
+        int written = _vsnprintf(buf, n, fmt, args);
+
+        if (written < 0 || (size_t)written >= n)
+            buf[n - 1] = '\0';
+#endif
+    }
 
 done:
     OPENSSL_free(fmt_alloc);
@@ -169,3 +270,13 @@ int snprintf(char *buf, size_t n, const char *fmt, ...)
     va_end(args);
     return ret;
 }
+
+#else
+
+/*
+ * Every other toolchain already provides C99 snprintf() and vsnprintf().
+ * ISO C does not allow an empty translation unit, so leave a typedef behind.
+ */
+typedef int msvc2013_snprintf_unused_t;
+
+#endif /* defined(_MSC_VER) && _MSC_VER < 1900 */
