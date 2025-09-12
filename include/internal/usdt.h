@@ -87,8 +87,18 @@ typedef struct ossl_usdt_data_st {
 #define OSSL_USDT_BLOB(b, s)
 
 #define OSSL_USDT_new_context(context, name)
+#if defined(_MSC_VER) && _MSC_VER < 1400
+/*
+ * Old MSVC (VC6) has no variadic macros.  Every caller passes exactly one
+ * { key, value } initializer, which the preprocessor splits into two
+ * arguments at the top-level comma, so fixed-arity macros are enough.
+ */
+#define OSSL_USDT_new_context_with_data(context, name, key, value)
+#define OSSL_USDT_data(context, key, value)
+#else
 #define OSSL_USDT_new_context_with_data(context, name, ...)
 #define OSSL_USDT_data(context, ...)
+#endif
 #define OSSL_USDT_new_child(parent_context, context)
 #define OSSL_USDT_release_context(context)
 

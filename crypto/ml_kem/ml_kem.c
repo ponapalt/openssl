@@ -206,7 +206,7 @@ static const ML_KEM_VINFO vinfo_map[3] = {
  */
 static const int kPrime = ML_KEM_PRIME;
 static const unsigned int kBarrettShift = BARRETT_SHIFT;
-static const size_t kBarrettMultiplier = (1ull << BARRETT_SHIFT) / ML_KEM_PRIME;
+static const size_t kBarrettMultiplier = ((uint64_t)1 << BARRETT_SHIFT) / ML_KEM_PRIME;
 static const uint16_t kHalfPrime = (ML_KEM_PRIME - 1) / 2;
 static const uint16_t kInverseDegree = INVERSE_DEGREE;
 

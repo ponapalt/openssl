@@ -59,7 +59,7 @@ static ossl_inline uint64_t namemap_fold64(const char *p)
     uint64_t w;
 
     memcpy(&w, p, sizeof(w));
-    return w & (NAMEMAP_FOLD * 0x0101010101010101ULL);
+    return w & (NAMEMAP_FOLD * UINT64_C(0x0101010101010101));
 }
 
 static ossl_inline uint32_t namemap_fold32(const char *p)
@@ -87,7 +87,7 @@ static ossl_inline uint64_t namemap_fold_short(const char *p, size_t len)
         | ((unsigned char)p[len - 1] & NAMEMAP_FOLD) << 16;
 }
 
-#define NAMEMAP_HASH_MULT 0x9e3779b97f4a7c15ULL
+#define NAMEMAP_HASH_MULT UINT64_C(0x9e3779b97f4a7c15)
 
 static ossl_inline uint64_t namemap_hash_word(uint64_t h, uint64_t w)
 {

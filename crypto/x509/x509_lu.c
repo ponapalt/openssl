@@ -900,6 +900,7 @@ STACK_OF(X509_OBJECT) *X509_STORE_get1_objects(X509_STORE *store)
 
 STACK_OF(X509) *X509_STORE_get1_all_certs(X509_STORE *store)
 {
+    int i;
     STACK_OF(X509) *sk = NULL;
 
     if (store == NULL) {
@@ -915,7 +916,7 @@ STACK_OF(X509) *X509_STORE_get1_all_certs(X509_STORE *store)
     if (store->objs_ht != NULL) {
         objs_ht_foreach_until(store->objs_ht, obj_ht_foreach_certs, &sk);
     } else {
-        for (int i = 0; i < sk_X509_OBJECT_num(store->objs); i++) {
+        for (i = 0; i < sk_X509_OBJECT_num(store->objs); i++) {
             X509 *cert = X509_OBJECT_get0_X509(sk_X509_OBJECT_value(store->objs, i));
 
             if (cert != NULL

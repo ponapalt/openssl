@@ -403,10 +403,11 @@ static void scan_ext_flags(const X509 *x509, uint32_t *flags)
     size_t num_entries = 0;
     uint8_t ex_bitset[(NUM_NID + 7) / 8];
     int count = X509_get_ext_count(x509);
+    int i;
 
     memset(ex_bitset, 0, sizeof(ex_bitset));
     /* A certificate MUST NOT include more than one instance of an extension. */
-    for (int i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         const X509_EXTENSION *ex = X509_get_ext(x509, i);
         const ASN1_OBJECT *a = X509_EXTENSION_get_object(ex);
         int nid = OBJ_obj2nid(a);
@@ -497,12 +498,12 @@ static void scan_ext_flags(const X509 *x509, uint32_t *flags)
 static int test_keyed_hash(void)
 {
     /* SipHash-2-4 reference vector: key 00..0f, message 00..0e */
-    static const uint64_t ref = 0xa129ca6149be45e5ULL;
+    static const uint64_t ref = UINT64_C(0xa129ca6149be45e5);
     OSSL_HTABLE(oid) t, u;
     SIPHASH sip = { 0 };
     unsigned char msg[64], key[OSSL_HTABLE_KEY_SIZE];
     unsigned char digest[SIPHASH_MIN_DIGEST_SIZE], le[8];
-    uint64_t v, x = 0x0123456789abcdefULL;
+    uint64_t v, x = UINT64_C(0x0123456789abcdef);
     size_t i, j;
 
     for (i = 0; i < sizeof(msg); i++)

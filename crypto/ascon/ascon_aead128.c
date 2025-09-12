@@ -13,6 +13,17 @@
 #include <openssl/byteorder.h>
 #include <openssl/crypto.h>
 
+/* 64 bit unsigned constant suffix, compilers without C99 support need help */
+#ifndef U64
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C) C##UI64
+# elif defined(__arch64__)
+#  define U64(C) C##UL
+# else
+#  define U64(C) C##ULL
+# endif
+#endif
+
 #define ROR64(x, i) ((x << (64 - i)) | (x >> i))
 
 /**
@@ -71,32 +82,32 @@
     } while (0)
 
 /* 8 rounds */
-#define ASCONP8(x0, x1, x2, x3, x4)           \
-    do {                                      \
-        ASCONP1(x0, x1, x2, x3, x4, 0xB4ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0xA5ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x96ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x87ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x78ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x69ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x5AULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0x4BULL); \
+#define ASCONP8(x0, x1, x2, x3, x4)             \
+    do {                                        \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xB4)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xA5)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x96)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x87)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x78)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x69)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x5A)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0x4B)); \
     } while (0)
 
 /* 12 rounds */
-#define ASCONP12(x0, x1, x2, x3, x4)          \
-    do {                                      \
-        ASCONP1(x0, x1, x2, x3, x4, 0xF0ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0xE1ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0xD2ULL); \
-        ASCONP1(x0, x1, x2, x3, x4, 0xC3ULL); \
-        ASCONP8(x0, x1, x2, x3, x4);          \
+#define ASCONP12(x0, x1, x2, x3, x4)            \
+    do {                                        \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xF0)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xE1)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xD2)); \
+        ASCONP1(x0, x1, x2, x3, x4, U64(0xC3)); \
+        ASCONP8(x0, x1, x2, x3, x4);            \
     } while (0)
 
 /* misc ascon flags for the context */
-#define ASCONFLG_AAD 0x0000000000000001ULL /* has AAD inputs? */
-#define ASCONFLG_DEC 0x0000000000000002ULL /* in decrypt mode? */
-#define ASCONFLG_DOMAINSEP 0x8000000000000000ULL /* ready to absorb non-AAD? */
+#define ASCONFLG_AAD U64(0x0000000000000001) /* has AAD inputs? */
+#define ASCONFLG_DEC U64(0x0000000000000002) /* in decrypt mode? */
+#define ASCONFLG_DOMAINSEP U64(0x8000000000000000) /* ready to absorb non-AAD? */
 
 static ossl_inline void ascon_aead128_update(ascon_aead128_ctx *ctx,
     unsigned char *out,
@@ -189,7 +200,7 @@ static void ascon_aead128_init(ascon_aead128_ctx *ctx, const unsigned char *k,
     OPENSSL_load_u64_le(&s4, n + 8);
     ctx->key[0] = k0 = s1;
     ctx->key[1] = k1 = s2;
-    s0 = 0x00001000808C0001ULL;
+    s0 = U64(0x00001000808C0001);
     ASCONP12(s0, s1, s2, s3, s4);
     s3 ^= k0;
     s4 ^= k1;

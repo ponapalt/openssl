@@ -32,9 +32,9 @@ ossl_unused uint64_t ossl_fnv1a_hash(uint8_t *key, size_t len);
 static ossl_unused ossl_inline uint64_t ossl_hash_mix64(uint64_t x)
 {
     x ^= x >> 30;
-    x *= 0xbf58476d1ce4e5b9ULL;
+    x *= UINT64_C(0xbf58476d1ce4e5b9);
     x ^= x >> 27;
-    x *= 0x94d049bb133111ebULL;
+    x *= UINT64_C(0x94d049bb133111eb);
     x ^= x >> 31;
     return x;
 }
@@ -108,10 +108,10 @@ ossl_siphash24_u64(const unsigned char k[OSSL_SIPHASH24_KEY_SIZE],
     const unsigned char *end = in + (len & ~(size_t)7);
     uint64_t k0 = ossl_siphash24_u8to64_le(k);
     uint64_t k1 = ossl_siphash24_u8to64_le(k + 8);
-    uint64_t v0 = k0 ^ 0x736f6d6570736575ULL;
-    uint64_t v1 = k1 ^ 0x646f72616e646f6dULL;
-    uint64_t v2 = k0 ^ 0x6c7967656e657261ULL;
-    uint64_t v3 = k1 ^ 0x7465646279746573ULL;
+    uint64_t v0 = k0 ^ UINT64_C(0x736f6d6570736575);
+    uint64_t v1 = k1 ^ UINT64_C(0x646f72616e646f6d);
+    uint64_t v2 = k0 ^ UINT64_C(0x6c7967656e657261);
+    uint64_t v3 = k1 ^ UINT64_C(0x7465646279746573);
     uint64_t b = (uint64_t)len << 56, m;
     size_t i;
 

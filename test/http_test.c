@@ -849,6 +849,11 @@ static OSSL_HTTP_REQ_CTX *new_nbio_ctx(BIO **wbio, BIO **rbio)
 /**
  * Responses whose outcome must not depend on how they are split across
  * calls to OSSL_HTTP_REQ_CTX_nbio() that return -1.
+ *
+ * Initializers are positional, since C89 has no designated initializers.
+ * The fields following RESP() are, in order: max_hdr_lines, expected_ct,
+ * expect_asn1, keep_alive, exp_ret, exp_reason, expected_body_len,
+ * expect_alive.
  */
 static const RESP_TEST_FIXTURE split_resp_tests[] = {
     /* 4 response header lines (including the empty one) exceed limit 2 */
@@ -856,9 +861,7 @@ static const RESP_TEST_FIXTURE split_resp_tests[] = {
            "X-Test-A: 1\r\n"
            "X-Test-B: 2\r\n"
            "\r\n"),
-        .max_hdr_lines = 2,
-        .exp_ret = 0,
-        .exp_reason = HTTP_R_RESPONSE_TOO_MANY_HDRLINES },
+        2, NULL, 0, 0, 0, HTTP_R_RESPONSE_TOO_MANY_HDRLINES, 0, 0 },
     /*-
      * Text Content-Type on status 200 while ASN.1 is expected.
      * The piecemeal case checks preservation of the status code across calls.
@@ -868,49 +871,36 @@ static const RESP_TEST_FIXTURE split_resp_tests[] = {
     { RESP("HTTP/1.1 200 OK\r\n"
            "Content-Type: text/plain\r\n"
            "\r\n"),
-        .expect_asn1 = 1,
-        .exp_ret = 0,
-        .exp_reason = HTTP_R_CONTENT_TYPE_MISMATCH },
+        0, NULL, 1, 0, 0, HTTP_R_CONTENT_TYPE_MISMATCH, 0, 0 },
     /* expected Content-Type was given before end of headers */
     { RESP("HTTP/1.0 200 OK\r\n"
            "Content-Type: text/plain\r\n"
            "X-Test: 1\r\n"
            "\r\n"),
-        .expected_ct = "text/plain",
-        .exp_ret = 1,
-        .expect_alive = 0 },
+        0, "text/plain", 0, 0, 1, 0, 0, 0 },
     /* HTTP/1.1 implies keep-alive, as required by the client */
     { RESP("HTTP/1.1 200 OK\r\n"
            "Content-Type: text/plain\r\n"
            "\r\n"),
-        .keep_alive = 2,
-        .exp_ret = 1,
-        .expect_alive = 1 },
+        0, NULL, 0, 2, 1, 0, 0, 1 },
     /* ASN.1 response body is read after the headers */
     { RESP("HTTP/1.0 200 OK\r\n"
            "Content-Type: application/octet-stream\r\n"
            "Content-Length: 2\r\n"
            "\r\n"
            "\x30\x00"),
-        .expect_asn1 = 1,
-        .exp_ret = 1,
-        .expected_body_len = 2,
-        .expect_alive = 0 },
+        0, NULL, 1, 0, 1, 0, 2, 0 },
     /* server persistence does not enable keep-alive without a request */
     { RESP("HTTP/1.1 200 OK\r\n"
            "Content-Length: 0\r\n"
            "\r\n"),
-        .keep_alive = 0,
-        .exp_ret = 1,
-        .expect_alive = 0 },
+        0, NULL, 0, 0, 1, 0, 0, 0 },
     /* the server may decline keep-alive when it is only preferred */
     { RESP("HTTP/1.1 200 OK\r\n"
            "Connection: close\r\n"
            "Content-Length: 0\r\n"
            "\r\n"),
-        .keep_alive = 1,
-        .exp_ret = 1,
-        .expect_alive = 0 },
+        0, NULL, 0, 1, 1, 0, 0, 0 },
 };
 
 /**
@@ -951,18 +941,12 @@ static const RESP_TEST_FIXTURE reuse_resp_tests[][2] = {
                "Content-Type: text/plain\r\n"
                "Content-Length: 0\r\n"
                "\r\n"),
-            .max_hdr_lines = 4,
-            .keep_alive = 2,
-            .exp_ret = 1,
-            .expect_alive = 1 },
+            4, NULL, 0, 2, 1, 0, 0, 1 },
         { RESP("HTTP/1.1 200 OK\r\n"
                "Content-Type: text/plain\r\n"
                "Content-Length: 0\r\n"
                "\r\n"),
-            .max_hdr_lines = 4,
-            .keep_alive = 2,
-            .exp_ret = 1,
-            .expect_alive = 1 },
+            4, NULL, 0, 2, 1, 0, 0, 1 },
     },
     /*-
      * Both requests expect text/plain, but only the first response provides it.
@@ -973,17 +957,11 @@ static const RESP_TEST_FIXTURE reuse_resp_tests[][2] = {
                "Content-Type: text/plain\r\n"
                "Content-Length: 0\r\n"
                "\r\n"),
-            .expected_ct = "text/plain",
-            .keep_alive = 2,
-            .exp_ret = 1,
-            .expect_alive = 1 },
+            0, "text/plain", 0, 2, 1, 0, 0, 1 },
         { RESP("HTTP/1.1 200 OK\r\n"
                "Content-Length: 0\r\n"
                "\r\n"),
-            .expected_ct = "text/plain",
-            .keep_alive = 2,
-            .exp_ret = 0,
-            .exp_reason = HTTP_R_MISSING_CONTENT_TYPE },
+            0, "text/plain", 0, 2, 0, HTTP_R_MISSING_CONTENT_TYPE, 0, 0 },
     },
 };
 

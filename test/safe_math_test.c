@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "internal/nelem.h"
+#include "internal/numbers.h"
 #include "internal/safe_math.h"
 #include "testutil.h"
 

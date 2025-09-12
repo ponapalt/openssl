@@ -110,7 +110,7 @@ static int test_qlog(void)
     QLOG_STR("field1", "foo");
     QLOG_STR_LEN("field2", "bar", 3);
     QLOG_I64("field3", 42);
-    QLOG_I64("field4", 1ULL << 60);
+    QLOG_I64("field4", 1UI64 << 60);
     QLOG_U64("field5", UINT64_MAX);
     QLOG_BOOL("field6", 0);
     QLOG_BOOL("field7", 1);

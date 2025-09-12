@@ -245,8 +245,8 @@ DEFINE_COMPARISONS(char, char, "%c", char)
 DEFINE_COMPARISONS(unsigned char, uchar, "%u", unsigned char)
 DEFINE_COMPARISONS(long, long, "%ld", long)
 DEFINE_COMPARISONS(unsigned long, ulong, "%lu", unsigned long)
-DEFINE_COMPARISONS(int64_t, int64_t, "%lld", long long)
-DEFINE_COMPARISONS(uint64_t, uint64_t, "%llu", unsigned long long)
+DEFINE_COMPARISONS(int64_t, int64_t, "%lld", int64_t)
+DEFINE_COMPARISONS(uint64_t, uint64_t, "%llu", uint64_t)
 DEFINE_COMPARISONS(size_t, size_t, "%zu", size_t)
 DEFINE_COMPARISONS(double, double, "%g", double)
 
@@ -410,6 +410,7 @@ static int test_err_helper(int lib, int reason, const char *str)
 {
     struct test_err_expect_ctx ctx;
     int result = 0;
+    int i;
 
     for (ctx.err_count = 0;; ctx.err_count++) {
         struct test_err_expect *e = &ctx.errs[ctx.err_count];
@@ -430,7 +431,7 @@ static int test_err_helper(int lib, int reason, const char *str)
         e->data = data != NULL ? OPENSSL_strdup(data) : NULL;
     }
 
-    for (int i = 0; i < ctx.err_count; i++) {
+    for (i = 0; i < ctx.err_count; i++) {
         struct test_err_expect *e = &ctx.errs[i];
 
         if ((str != NULL ? err_s_cb(str, e) : err_r_cb(lib, reason, e)) == 1)

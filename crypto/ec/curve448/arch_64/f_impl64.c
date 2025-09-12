@@ -26,7 +26,7 @@ void ossl_gf_mul(gf_s *RESTRICT cs, const gf as, const gf bs)
     const uint64_t *a = as->limb, *b = bs->limb;
     uint64_t *c = cs->limb;
     uint128_t accum0 = 0, accum1 = 0, accum2;
-    uint64_t mask = (1ULL << 56) - 1;
+    uint64_t mask = (1UI64 << 56) - 1;
     uint64_t aa[4], bb[4], bbb[4];
     unsigned int i, j;
 
@@ -78,7 +78,7 @@ void ossl_gf_mulw_unsigned(gf_s *RESTRICT cs, const gf as, uint32_t b)
     const uint64_t *a = as->limb;
     uint64_t *c = cs->limb;
     uint128_t accum0 = 0, accum4 = 0;
-    uint64_t mask = (1ULL << 56) - 1;
+    uint64_t mask = (1UI64 << 56) - 1;
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -104,7 +104,7 @@ void ossl_gf_sqr(gf_s *RESTRICT cs, const gf as)
     const uint64_t *a = as->limb;
     uint64_t *c = cs->limb;
     uint128_t accum0 = 0, accum1 = 0, accum2;
-    uint64_t mask = (1ULL << 56) - 1;
+    uint64_t mask = (1UI64 << 56) - 1;
     uint64_t aa[4];
     unsigned int i;
 

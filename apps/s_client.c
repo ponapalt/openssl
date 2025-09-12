@@ -3414,7 +3414,13 @@ re_start:
                 if ((k != 0) || (cbuf_len != 0)) {
                     int sockerr = get_last_socket_error();
 
+#if defined(EISCONN)
                     if (!tfo || sockerr != EISCONN) {
+#elif defined(WSAEISCONN)
+                    if (!tfo || sockerr != WSAEISCONN) {
+#else
+                    if (!tfo) {
+#endif
                         BIO_printf(bio_err, "write:errno=%d\n", sockerr);
                         goto shut;
                     }
@@ -3725,7 +3731,7 @@ static void print_ech_retry_configs(BIO *bio, SSL *s)
             goto end;
         }
         BIO_printf(bio, "ECH: entry: %d public_name: %s age: %lld%s\n",
-            ind, pn, (long long)secs,
+            ind, pn, (int64_t)secs,
             has_priv ? " (has private key)" : "");
         BIO_printf(bio, "ECH: \t%s\n", ec);
         OPENSSL_free(pn);

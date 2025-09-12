@@ -50,6 +50,16 @@ static uint64_t now_ns(void)
     return ossl_time2ticks(ossl_time_now()) / (OSSL_TIME_SECOND / 1000000000);
 }
 
+/*
+ * Some old compilers (e.g. VC6) cannot convert an unsigned 64-bit integer
+ * to double directly.  The values here are elapsed nanoseconds, which are
+ * far below 2^63, so going through the signed type is safe.
+ */
+static double u64_to_double(uint64_t v)
+{
+    return (double)(int64_t)v;
+}
+
 static void report(const char *name, double value, const char *unit)
 {
     printf("%-34s %12.2f %s\n", name, value, unit);
@@ -171,7 +181,7 @@ static double nm_time_hits(void)
     if (sum == 0)
         die("namemap hits");
     nm_sink += sum;
-    return (double)start / NM_LOOKUPS;
+    return u64_to_double(start) / NM_LOOKUPS;
 }
 
 static double nm_time_one_hot(void)
@@ -186,7 +196,7 @@ static double nm_time_one_hot(void)
     if (sum == 0)
         die("namemap SHA2-256");
     nm_sink += sum;
-    return (double)start / NM_LOOKUPS;
+    return u64_to_double(start) / NM_LOOKUPS;
 }
 
 static double nm_time_misses(void)
@@ -205,7 +215,7 @@ static double nm_time_misses(void)
     start = now_ns() - start;
     if (sum != 0)
         die("namemap misses");
-    return (double)start / NM_LOOKUPS;
+    return u64_to_double(start) / NM_LOOKUPS;
 }
 
 static double nm_time_fetch(void)
@@ -222,7 +232,7 @@ static double nm_time_fetch(void)
             die("EVP_MD_fetch");
         EVP_MD_free(md);
     }
-    return (double)(now_ns() - start) / n;
+    return u64_to_double(now_ns() - start) / n;
 }
 
 #ifdef TIMING_THREADS
@@ -283,7 +293,7 @@ static void mt_report(const char *prefix, void (*fn)(void), int lookups,
         b = 0;
         for (r = 0; r < repeats; r++) {
             v = (double)threads[i] * lookups * 1000.0
-                / (double)mt_run(threads[i], fn);
+                / u64_to_double(mt_run(threads[i], fn));
             if (v > b)
                 b = v;
         }
@@ -335,7 +345,7 @@ static double nm_time_add(int count, int *failed)
     }
     start = now_ns() - start;
     ossl_namemap_free(nm);
-    return (double)start / 1000;
+    return u64_to_double(start) / 1000;
 }
 
 /* ns per lookup in a namemap holding |count| names and as many aliases */
@@ -366,7 +376,7 @@ static double nm_time_sized_hits(int count)
     nm_sink += sum;
     free(names);
     ossl_namemap_free(nm);
-    return (double)start / NM_LOOKUPS;
+    return u64_to_double(start) / NM_LOOKUPS;
 }
 
 /*-
@@ -459,7 +469,7 @@ static double xs_time_add(int n)
     X509_STORE *store = xs_fill(n);
 
     X509_STORE_free(store);
-    return (double)(now_ns() - start) / n;
+    return u64_to_double(now_ns() - start) / n;
 }
 
 static double xs_time_new_free(void)
@@ -475,7 +485,7 @@ static double xs_time_new_free(void)
             die("X509_STORE_new");
         X509_STORE_free(store);
     }
-    return (double)(now_ns() - start) / n;
+    return u64_to_double(now_ns() - start) / n;
 }
 
 static X509_STORE *xs_shared;
@@ -514,7 +524,7 @@ static double xs_time_lookups(int hits)
     uint64_t start = now_ns();
 
     xs_lookups(hits, 4242);
-    return (double)(now_ns() - start) / XS_LOOKUPS;
+    return u64_to_double(now_ns() - start) / XS_LOOKUPS;
 }
 
 #ifdef TIMING_THREADS
@@ -549,7 +559,7 @@ static double xs_time_get1_certs(void)
     }
     start = now_ns() - start;
     X509_STORE_CTX_free(ctx);
-    return (double)start / n;
+    return u64_to_double(start) / n;
 }
 
 /* ns per certificate for listing the whole store */
@@ -565,7 +575,7 @@ static double xs_time_all_certs(void)
             die("X509_STORE_get1_all_certs");
         OSSL_STACK_OF_X509_free(sk);
     }
-    return (double)(now_ns() - start) / ((double)reps * xs_shared_n);
+    return u64_to_double(now_ns() - start) / ((double)reps * xs_shared_n);
 }
 
 /*-

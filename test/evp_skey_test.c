@@ -228,9 +228,6 @@ end:
 #define DES_IV_SIZE 8
 static int test_des_raw_skey(void)
 {
-    /* DES is not available in FIPS mode */
-    if (OSSL_PROVIDER_available(libctx, "fips"))
-        return TEST_skip("DES not available in FIPS mode");
     const unsigned char data[DATA_SIZE] = {
         0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
         0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
@@ -247,6 +244,10 @@ static int test_des_raw_skey(void)
     EVP_CIPHER_CTX *ctx = NULL;
     EVP_SKEY *skey = NULL;
     int ret = 0;
+
+    /* DES is not available in FIPS mode */
+    if (OSSL_PROVIDER_available(libctx, "fips"))
+        return TEST_skip("DES not available in FIPS mode");
 
     memset(encrypted_skey, 0, sizeof(encrypted_skey));
     memset(encrypted_raw, 0, sizeof(encrypted_raw));

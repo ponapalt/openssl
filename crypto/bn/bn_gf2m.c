@@ -23,6 +23,17 @@
  */
 #define MAX_ITERATIONS 50
 
+/* 64 bit unsigned constant suffix, compilers without C99 support need help */
+#ifndef U64
+# if (defined(_WIN32) || defined(_WIN64)) && !defined(__MINGW32__)
+#  define U64(C) C##UI64
+# elif defined(__arch64__)
+#  define U64(C) C##UL
+# else
+#  define U64(C) C##ULL
+# endif
+#endif
+
 #define SQR_nibble(w) ((((w) & 8) << 3) \
     | (((w) & 4) << 2)                  \
     | (((w) & 2) << 1)                  \
@@ -125,7 +136,7 @@ static void bn_GF2m_mul_1x1(BN_ULONG *r1, BN_ULONG *r0, const BN_ULONG a,
     BN_ULONG tab[16], top3b = a >> 61;
     register BN_ULONG a1, a2, a4, a8;
 
-    a1 = a & (0x1FFFFFFFFFFFFFFFULL);
+    a1 = a & U64(0x1FFFFFFFFFFFFFFF);
     a2 = a1 << 1;
     a4 = a2 << 1;
     a8 = a4 << 1;
