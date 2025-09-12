@@ -35,18 +35,6 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
     int ret = -1;
     char buf[512];
     char *abuf;
-#if defined(_MSC_VER) && _MSC_VER < 1900
-    char *msvc_fmt_alloc = NULL;
-#endif
-    const char *fmt;
-
-#if defined(_MSC_VER) && _MSC_VER < 1900
-    /* Fix MSVC 2013 format to accept C99 format strings */
-    if (!msvc_translate_printf_format(format, &fmt, &msvc_fmt_alloc))
-        goto done;
-#else
-    fmt = format;
-#endif
 
     va_copy(cp_args, args);
 
@@ -56,7 +44,7 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
      * call to vsnprintf() here uses args we got in function argument.
      * The second call is going to use cp_args we made earlier.
      */
-    sz = vsnprintf(buf, sizeof(buf), fmt, args);
+    sz = vsnprintf(buf, sizeof(buf), format, args);
     if (sz >= 0) {
         if ((size_t)sz >= sizeof(buf)) {
             sz += 1;
@@ -64,7 +52,7 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
             if (abuf == NULL) {
                 ret = -1;
             } else {
-                sz = vsnprintf(abuf, sz, fmt, cp_args);
+                sz = vsnprintf(abuf, sz, format, cp_args);
                 ret = BIO_write(bio, abuf, sz);
                 OPENSSL_free(abuf);
             }
@@ -74,10 +62,7 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
         }
     }
     va_end(cp_args);
-#if defined(_MSC_VER) && _MSC_VER < 1900
-done:
-    OPENSSL_free(msvc_fmt_alloc);
-#endif
+
     return ret;
 }
 
