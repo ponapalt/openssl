@@ -37,8 +37,6 @@ void win32_utf8argv(int *argc, char **argv[]);
  */
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #include <stdarg.h>
-int msvc_translate_printf_format(const char *format, const char **out,
-    char **tmp);
 int snprintf(char *buf, size_t n, const char *fmt, ...);
 int vsnprintf(char *buf, size_t n, const char *fmt, va_list args);
 #endif
