@@ -47,11 +47,166 @@ int BIO_printf(BIO *bio, const char *format, ...)
  * https://stackoverflow.com/questions/2915672/snprintf-and-visual-studio-2010
  *
  */
+
+#if _MSC_VER < 1900
+/*
+ * Convert C99 printf format specifiers to old MSVC format specifiers.
+ * Old MSVC (before VS2015) doesn't support C99 format specifiers like %lld.
+ * This function converts them to MSVC-specific format specifiers like %I64d.
+ *
+ * Returns a newly allocated string that must be freed by the caller,
+ * or NULL if memory allocation fails.
+ */
+static char *convert_format_for_old_msvc(const char *format)
+{
+    const char *src;
+    char *dst, *result;
+    size_t len;
+    int in_format;
+
+    /* Calculate the maximum possible length after conversion */
+    len = strlen(format);
+    /* 'll' (2 chars) -> 'I64' (3 chars), so add extra space */
+    len += len / 2 + 1;
+
+    result = (char *)OPENSSL_malloc(len);
+    if (result == NULL)
+        return NULL;
+
+    src = format;
+    dst = result;
+    in_format = 0;
+
+    while (*src != '\0') {
+        if (*src == '%') {
+            *dst++ = *src++;
+            if (*src == '%') {
+                /* Escaped percent sign */
+                *dst++ = *src++;
+                continue;
+            }
+            in_format = 1;
+        }
+
+        if (in_format) {
+            /* Skip flags: -, +, space, #, 0 */
+            while (*src == '-' || *src == '+' || *src == ' ' ||
+                   *src == '#' || *src == '0') {
+                *dst++ = *src++;
+            }
+
+            /* Skip width */
+            while (*src >= '0' && *src <= '9') {
+                *dst++ = *src++;
+            }
+            if (*src == '*') {
+                *dst++ = *src++;
+            }
+
+            /* Skip precision */
+            if (*src == '.') {
+                *dst++ = *src++;
+                while (*src >= '0' && *src <= '9') {
+                    *dst++ = *src++;
+                }
+                if (*src == '*') {
+                    *dst++ = *src++;
+                }
+            }
+
+            /* Check for 'll' length modifier and convert to 'I64' */
+            if (src[0] == 'l' && src[1] == 'l') {
+                src += 2;  /* Skip 'll' */
+                *dst++ = 'I';
+                *dst++ = '6';
+                *dst++ = '4';
+                /* Copy the conversion specifier */
+                if (*src != '\0') {
+                    *dst++ = *src++;
+                }
+                in_format = 0;
+            } else if (src[0] == 'h' && src[1] == 'h') {
+                /*
+                 * 'hh' is not supported by old MSVC. Simply skip it.
+                 * The argument is promoted to int anyway, so %d works.
+                 */
+                src += 2;
+                /* Copy the conversion specifier */
+                if (*src != '\0') {
+                    *dst++ = *src++;
+                }
+                in_format = 0;
+            } else if (*src == 'h' || *src == 'l' || *src == 'L' ||
+                       *src == 'z' || *src == 't' || *src == 'j') {
+                /* Other length modifiers */
+                if (*src == 'z') {
+                    /* %zd -> %Id on 32-bit, %I64d on 64-bit (size_t) */
+                    src++;
+#if defined(_WIN64)
+                    *dst++ = 'I';
+                    *dst++ = '6';
+                    *dst++ = '4';
+#else
+                    *dst++ = 'I';
+#endif
+                } else if (*src == 't') {
+                    /* %td -> %Id on 32-bit, %I64d on 64-bit (ptrdiff_t) */
+                    src++;
+#if defined(_WIN64)
+                    *dst++ = 'I';
+                    *dst++ = '6';
+                    *dst++ = '4';
+#else
+                    *dst++ = 'I';
+#endif
+                } else if (*src == 'j') {
+                    /* %jd -> %I64d (intmax_t is always 64-bit on Windows) */
+                    src++;
+                    *dst++ = 'I';
+                    *dst++ = '6';
+                    *dst++ = '4';
+                } else {
+                    /* Single 'h', 'l', or 'L' - supported by old MSVC */
+                    *dst++ = *src++;
+                }
+                /* Copy the conversion specifier */
+                if (*src != '\0') {
+                    *dst++ = *src++;
+                }
+                in_format = 0;
+            } else {
+                /* No length modifier, just copy conversion specifier */
+                if (*src != '\0') {
+                    *dst++ = *src++;
+                }
+                in_format = 0;
+            }
+        } else {
+            *dst++ = *src++;
+        }
+    }
+
+    *dst = '\0';
+    return result;
+}
+#endif
+
 static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
 {
     char buf[512];
     char *abuf;
     int ret, sz;
+#if _MSC_VER < 1900
+    char *converted_format;
+#endif
+
+#if _MSC_VER < 1900
+    /* Convert C99 format specifiers to old MSVC format specifiers */
+    converted_format = convert_format_for_old_msvc(format);
+    if (converted_format == NULL)
+        return -1;
+    format = converted_format;
+#endif
 
     sz = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, format, args);
     if (sz == -1) {
@@ -68,6 +223,10 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
         ret = BIO_write(bio, buf, sz);
     }
 
+#if _MSC_VER < 1900
+    OPENSSL_free(converted_format);
+#endif
+
     return ret;
 }
 
@@ -78,10 +237,23 @@ int ossl_BIO_snprintf_msvc(char *buf, size_t n, const char *format, ...)
 {
     va_list args;
     int ret;
+#if _MSC_VER < 1900
+    char *converted_format;
+
+    /* Convert C99 format specifiers to old MSVC format specifiers */
+    converted_format = convert_format_for_old_msvc(format);
+    if (converted_format == NULL)
+        return -1;
+    format = converted_format;
+#endif
 
     va_start(args, format);
     ret = _vsnprintf_s(buf, n, _TRUNCATE, format, args);
     va_end(args);
+
+#if _MSC_VER < 1900
+    OPENSSL_free(converted_format);
+#endif
 
     return ret;
 }
@@ -141,6 +313,15 @@ int BIO_snprintf(char *buf, size_t n, const char *format, ...)
 {
     va_list args;
     int ret;
+#if defined(_MSC_VER) && _MSC_VER < 1900
+    char *converted_format;
+
+    /* Convert C99 format specifiers to old MSVC format specifiers */
+    converted_format = convert_format_for_old_msvc(format);
+    if (converted_format == NULL)
+        return -1;
+    format = converted_format;
+#endif
 
     va_start(args, format);
 
@@ -153,12 +334,25 @@ int BIO_snprintf(char *buf, size_t n, const char *format, ...)
 #endif
     va_end(args);
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+    OPENSSL_free(converted_format);
+#endif
+
     return ret;
 }
 
 int BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
 {
     int ret;
+#if defined(_MSC_VER) && _MSC_VER < 1900
+    char *converted_format;
+
+    /* Convert C99 format specifiers to old MSVC format specifiers */
+    converted_format = convert_format_for_old_msvc(format);
+    if (converted_format == NULL)
+        return -1;
+    format = converted_format;
+#endif
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
     ret = _vsnprintf_s(buf, n, _TRUNCATE, format, args);
@@ -167,5 +361,10 @@ int BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
     if ((size_t)ret >= n)
         ret = -1;
 #endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1900
+    OPENSSL_free(converted_format);
+#endif
+
     return ret;
 }
