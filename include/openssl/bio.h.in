@@ -29,6 +29,7 @@ use OpenSSL::stackhash qw(generate_stack_macros);
 #include <stdio.h>
 #endif
 #include <stdarg.h>
+#include <stdint.h>
 
 #include <openssl/crypto.h>
 #include <openssl/bioerr.h>

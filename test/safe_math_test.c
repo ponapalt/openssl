@@ -25,6 +25,10 @@ OSSL_SAFE_MATH_SIGNED(int, int)
 OSSL_SAFE_MATH_UNSIGNED(uint, unsigned int)
 OSSL_SAFE_MATH_UNSIGNED(size_t, size_t)
 
+#ifndef SIZE_MAX
+#define SIZE_MAX UINT_MAX
+#endif
+
 static const struct {
     int a, b;
     int sum_err, sub_err, mul_err, div_err, mod_err, div_round_up_err;

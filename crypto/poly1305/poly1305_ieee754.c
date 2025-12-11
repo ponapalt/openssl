@@ -54,20 +54,20 @@
 
 typedef unsigned char u8;
 typedef unsigned int u32;
-typedef unsigned long long u64;
+typedef unsigned __int64 u64;
 typedef union {
     double d;
     u64 u;
 } elem64;
 
-#define TWO(p) ((double)(1ULL << (p)))
+#define TWO(p) ((double)(1UI64 << (p)))
 #define TWO0 TWO(0)
 #define TWO32 TWO(32)
 #define TWO64 (TWO32 * TWO(32))
 #define TWO96 (TWO64 * TWO(32))
 #define TWO130 (TWO96 * TWO(34))
 
-#define EXP(p) ((1023ULL + (p)) << 52)
+#define EXP(p) ((1023UI64 + (p)) << 52)
 
 #if defined(__x86_64__) || (defined(__PPC__) && defined(__LITTLE_ENDIAN__))
 #define U8TOU32(p) (*(const u32 *)(p))
@@ -102,7 +102,7 @@ static const u64 one = 1;
 #elif defined(__s390x__)
 static const u32 fpc = 1;
 #elif defined(__sparc__)
-static const u64 fsr = 1ULL << 30;
+static const u64 fsr = 1UI64 << 30;
 #elif defined(__mips__)
 static const u32 fcsr = 1;
 #else
@@ -433,10 +433,10 @@ void poly1305_emit(void *ctx, unsigned char mac[16], const u32 nonce[4])
     /*
      * thanks to bias masking exponent gives integer result
      */
-    h0 = st->h[0].u & 0x000fffffffffffffULL;
-    h1 = st->h[1].u & 0x000fffffffffffffULL;
-    h2 = st->h[2].u & 0x000fffffffffffffULL;
-    h3 = st->h[3].u & 0x000fffffffffffffULL;
+    h0 = st->h[0].u & 0x000fffffffffffffUI64;
+    h1 = st->h[1].u & 0x000fffffffffffffUI64;
+    h2 = st->h[2].u & 0x000fffffffffffffUI64;
+    h3 = st->h[3].u & 0x000fffffffffffffUI64;
 
     /*
      * can be partially reduced, so reduce...

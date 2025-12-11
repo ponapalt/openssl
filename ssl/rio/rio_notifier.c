@@ -60,6 +60,10 @@ static ossl_inline int ensure_wsa_startup(void)
 
 #if RIO_NOTIFIER_METHOD == RIO_NOTIFIER_METHOD_SOCKET
 
+#ifndef WSA_FLAG_NO_HANDLE_INHERIT
+#define WSA_FLAG_NO_HANDLE_INHERIT 0x80
+#endif
+
 /* Create a close-on-exec socket. */
 static int create_socket(int domain, int socktype, int protocol)
 {
