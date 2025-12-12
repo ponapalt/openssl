@@ -20,8 +20,7 @@
 # if _MSC_VER < 1800
    /* va_copy is not available in MSVC before VS2013 */
 #  ifndef va_copy
-    /* Use memcpy for safer copying of va_list */
-#   define va_copy(dst, src) memcpy(&(dst), &(src), sizeof(va_list))
+#   define va_copy(dst, src) ((dst) = (src))
 #  endif
 # endif
 # if _MSC_VER < 1400
