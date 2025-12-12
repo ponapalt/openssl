@@ -15,6 +15,22 @@
 #include <openssl/bio.h>
 #include <openssl/configuration.h>
 
+/* Compatibility for old MSVC versions */
+#if defined(_MSC_VER)
+# if _MSC_VER < 1800
+   /* va_copy is not available in MSVC before VS2013 */
+#  ifndef va_copy
+#   define va_copy(dst, src) ((dst) = (src))
+#  endif
+# endif
+# if _MSC_VER < 1400
+   /* _TRUNCATE is not available in MSVC before VS2005 */
+#  ifndef _TRUNCATE
+#   define _TRUNCATE ((size_t)-1)
+#  endif
+# endif
+#endif
+
 int BIO_printf(BIO *bio, const char *format, ...)
 {
     va_list args;
@@ -198,6 +214,7 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
     int ret, sz;
 #if _MSC_VER < 1900
     char *converted_format;
+    va_list args_copy;
 #endif
 
 #if _MSC_VER < 1900
@@ -206,16 +223,61 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
     if (converted_format == NULL)
         return -1;
     format = converted_format;
+    va_copy(args_copy, args);
 #endif
 
+#if _MSC_VER >= 1400
+    /* VS2005 and later: use _vsnprintf_s */
     sz = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, format, args);
+#else
+    /* Older MSVC: use _vsnprintf */
+    sz = _vsnprintf(buf, sizeof(buf), format, args);
+#endif
+
     if (sz == -1) {
-        sz = _vscprintf(format, args) + 1;
+        /* Buffer was too small, need to allocate larger buffer */
+#if _MSC_VER >= 1300
+        /* VS2002 and later: use _vscprintf to get required size */
+        sz = _vscprintf(format, args_copy) + 1;
+#else
+        /* VC6 and older: _vscprintf not available, try larger buffer */
+        sz = sizeof(buf) * 4;  /* Start with 2048 bytes */
+#endif
         abuf = (char *)OPENSSL_malloc(sz);
         if (abuf == NULL) {
             ret = -1;
         } else {
-            sz = _vsnprintf(abuf, sz, format, args);
+#if _MSC_VER < 1300
+            /* VC6: may need to retry with even larger buffer */
+            {
+                size_t current_sz = sz;
+                va_copy(args_copy, args);
+                sz = _vsnprintf(abuf, current_sz, format, args_copy);
+                while (sz == -1) {
+                    /* Buffer still too small, double it */
+                    size_t new_sz = current_sz * 2;
+                    char *new_abuf;
+                    if (new_sz > 1024 * 1024) {
+                        /* Sanity limit: 1MB */
+                        OPENSSL_free(abuf);
+                        ret = -1;
+                        goto cleanup;
+                    }
+                    new_abuf = (char *)OPENSSL_realloc(abuf, new_sz);
+                    if (new_abuf == NULL) {
+                        OPENSSL_free(abuf);
+                        ret = -1;
+                        goto cleanup;
+                    }
+                    abuf = new_abuf;
+                    current_sz = new_sz;
+                    va_copy(args_copy, args);
+                    sz = _vsnprintf(abuf, current_sz, format, args_copy);
+                }
+            }
+#else
+            sz = _vsnprintf(abuf, sz, format, args_copy);
+#endif
             ret = BIO_write(bio, abuf, sz);
             OPENSSL_free(abuf);
         }
@@ -223,6 +285,9 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
         ret = BIO_write(bio, buf, sz);
     }
 
+#if _MSC_VER < 1300
+cleanup:
+#endif
 #if _MSC_VER < 1900
     OPENSSL_free(converted_format);
 #endif
@@ -248,7 +313,13 @@ int ossl_BIO_snprintf_msvc(char *buf, size_t n, const char *format, ...)
 #endif
 
     va_start(args, format);
+#if _MSC_VER >= 1400
+    /* VS2005 and later: use _vsnprintf_s */
     ret = _vsnprintf_s(buf, n, _TRUNCATE, format, args);
+#else
+    /* Older MSVC: use _vsnprintf */
+    ret = _vsnprintf(buf, n, format, args);
+#endif
     va_end(args);
 
 #if _MSC_VER < 1900
@@ -325,8 +396,12 @@ int BIO_snprintf(char *buf, size_t n, const char *format, ...)
 
     va_start(args, format);
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && _MSC_VER < 1900
+    /* VS2005 to VS2013: use _vsnprintf_s */
     ret = _vsnprintf_s(buf, n, _TRUNCATE, format, args);
+#elif defined(_MSC_VER) && _MSC_VER < 1400
+    /* VC6 to VS2003: use _vsnprintf */
+    ret = _vsnprintf(buf, n, format, args);
 #else
     ret = vsnprintf(buf, n, format, args);
     if ((size_t)ret >= n)
@@ -354,8 +429,12 @@ int BIO_vsnprintf(char *buf, size_t n, const char *format, va_list args)
     format = converted_format;
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1900
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && _MSC_VER < 1900
+    /* VS2005 to VS2013: use _vsnprintf_s */
     ret = _vsnprintf_s(buf, n, _TRUNCATE, format, args);
+#elif defined(_MSC_VER) && _MSC_VER < 1400
+    /* VC6 to VS2003: use _vsnprintf */
+    ret = _vsnprintf(buf, n, format, args);
 #else
     ret = vsnprintf(buf, n, format, args);
     if ((size_t)ret >= n)
