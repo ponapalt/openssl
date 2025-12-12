@@ -125,11 +125,22 @@ static char *convert_format_for_old_msvc(const char *format)
                     *dst++ = *src++;
                 }
                 in_format = 0;
+            } else if (src[0] == 'h' && src[1] == 'h') {
+                /*
+                 * 'hh' is not supported by old MSVC. Simply skip it.
+                 * The argument is promoted to int anyway, so %d works.
+                 */
+                src += 2;
+                /* Copy the conversion specifier */
+                if (*src != '\0') {
+                    *dst++ = *src++;
+                }
+                in_format = 0;
             } else if (*src == 'h' || *src == 'l' || *src == 'L' ||
                        *src == 'z' || *src == 't' || *src == 'j') {
                 /* Other length modifiers */
                 if (*src == 'z') {
-                    /* %zd -> %Id on 32-bit, %I64d on 64-bit */
+                    /* %zd -> %Id on 32-bit, %I64d on 64-bit (size_t) */
                     src++;
 #if defined(_WIN64)
                     *dst++ = 'I';
@@ -138,8 +149,8 @@ static char *convert_format_for_old_msvc(const char *format)
 #else
                     *dst++ = 'I';
 #endif
-                } else if (*src == 't' || *src == 'j') {
-                    /* %td, %jd -> %I64d (ptrdiff_t and intmax_t are 64-bit on Win64) */
+                } else if (*src == 't') {
+                    /* %td -> %Id on 32-bit, %I64d on 64-bit (ptrdiff_t) */
                     src++;
 #if defined(_WIN64)
                     *dst++ = 'I';
@@ -148,12 +159,14 @@ static char *convert_format_for_old_msvc(const char *format)
 #else
                     *dst++ = 'I';
 #endif
-                } else if (src[0] == 'h' && src[1] == 'h') {
-                    /* 'hh' -> copy as-is */
-                    *dst++ = *src++;
-                    *dst++ = *src++;
+                } else if (*src == 'j') {
+                    /* %jd -> %I64d (intmax_t is always 64-bit on Windows) */
+                    src++;
+                    *dst++ = 'I';
+                    *dst++ = '6';
+                    *dst++ = '4';
                 } else {
-                    /* Single 'h', 'l', or 'L' */
+                    /* Single 'h', 'l', or 'L' - supported by old MSVC */
                     *dst++ = *src++;
                 }
                 /* Copy the conversion specifier */
