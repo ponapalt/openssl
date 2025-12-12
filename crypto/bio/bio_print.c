@@ -20,7 +20,8 @@
 # if _MSC_VER < 1800
    /* va_copy is not available in MSVC before VS2013 */
 #  ifndef va_copy
-#   define va_copy(dst, src) ((dst) = (src))
+    /* Use memcpy for safer copying of va_list */
+#   define va_copy(dst, src) memcpy(&(dst), &(src), sizeof(va_list))
 #  endif
 # endif
 # if _MSC_VER < 1400
@@ -212,9 +213,15 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
     char buf[512];
     char *abuf;
     int ret, sz;
+    va_list args_copy, args_copy2;
 #if _MSC_VER < 1900
     char *converted_format;
-    va_list args_copy;
+#endif
+
+    /* Make copies of args before any use, since va_list is consumed on use */
+    va_copy(args_copy, args);
+#if _MSC_VER < 1300
+    va_copy(args_copy2, args);
 #endif
 
 #if _MSC_VER < 1900
@@ -223,22 +230,23 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
     if (converted_format == NULL)
         return -1;
     format = converted_format;
-    va_copy(args_copy, args);
 #endif
 
 #if _MSC_VER >= 1400
     /* VS2005 and later: use _vsnprintf_s */
-    sz = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, format, args);
+    sz = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, format, args_copy);
 #else
     /* Older MSVC: use _vsnprintf */
-    sz = _vsnprintf(buf, sizeof(buf), format, args);
+    sz = _vsnprintf(buf, sizeof(buf), format, args_copy);
 #endif
 
     if (sz == -1) {
         /* Buffer was too small, need to allocate larger buffer */
 #if _MSC_VER >= 1300
         /* VS2002 and later: use _vscprintf to get required size */
-        sz = _vscprintf(format, args_copy) + 1;
+        va_copy(args_copy2, args);
+        sz = _vscprintf(format, args_copy2) + 1;
+        va_end(args_copy2);
 #else
         /* VC6 and older: _vscprintf not available, try larger buffer */
         sz = sizeof(buf) * 4;  /* Start with 2048 bytes */
@@ -251,8 +259,7 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
             /* VC6: may need to retry with even larger buffer */
             {
                 size_t current_sz = sz;
-                va_copy(args_copy, args);
-                sz = _vsnprintf(abuf, current_sz, format, args_copy);
+                sz = _vsnprintf(abuf, current_sz, format, args_copy2);
                 while (sz == -1) {
                     /* Buffer still too small, double it */
                     size_t new_sz = current_sz * 2;
@@ -271,12 +278,16 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
                     }
                     abuf = new_abuf;
                     current_sz = new_sz;
-                    va_copy(args_copy, args);
-                    sz = _vsnprintf(abuf, current_sz, format, args_copy);
+                    /* Need a fresh copy for retry */
+                    va_end(args_copy2);
+                    va_copy(args_copy2, args);
+                    sz = _vsnprintf(abuf, current_sz, format, args_copy2);
                 }
             }
 #else
-            sz = _vsnprintf(abuf, sz, format, args_copy);
+            va_copy(args_copy2, args);
+            sz = _vsnprintf(abuf, sz, format, args_copy2);
+            va_end(args_copy2);
 #endif
             ret = BIO_write(bio, abuf, sz);
             OPENSSL_free(abuf);
@@ -287,7 +298,9 @@ static int msvc_bio_vprintf(BIO *bio, const char *format, va_list args)
 
 #if _MSC_VER < 1300
 cleanup:
+    va_end(args_copy2);
 #endif
+    va_end(args_copy);
 #if _MSC_VER < 1900
     OPENSSL_free(converted_format);
 #endif
