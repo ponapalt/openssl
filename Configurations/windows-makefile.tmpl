@@ -694,7 +694,12 @@ EOF
   sub generatesrc {
       my %args = @_;
       my $gen0 = $args{generator}->[0];
-      my $gen_args = join('', map { " $_" }
+      # NMAKE 6.00 splits a bare argument at its first slash as soon as the
+      # command line holds two or more quoted tokens, so quote the arguments
+      # that would trigger it.  Arguments that carry quoting of their own are
+      # left alone; they may be fragments of a single quoted string.
+      my $gen_args = join('', map { m|/| && index($_, '"') < 0
+                                    ? " \"$_\"" : " $_" }
                               @{$args{generator}}[1..$#{$args{generator}}]);
       my $gen_incs = join("", map { " -I\"$_\"" } @{$args{generator_incs}});
       my $incs = join("", map { " -I\"$_\"" } @{$args{incs}});
