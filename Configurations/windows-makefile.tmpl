@@ -700,10 +700,17 @@ EOF
   # left alone.
   sub generatearg {
       my $arg = shift;
+      # Arguments that carry quoting of their own are left alone; they may be
+      # fragments of a single quoted string.
+      return $arg if index($arg, '"') >= 0;
       if ($arg =~ /\$\((?:SRCDIR|BLDDIR)\)/) {
           $arg =~ s|/|\\|g;
           return "\"$arg\"";
       }
+      # NMAKE 6.00 splits a bare argument at its first slash as soon as the
+      # command line holds two or more quoted tokens, so quote the remaining
+      # arguments that would trigger it.
+      return "\"$arg\"" if $arg =~ m|/|;
       return $arg;
   }
 
