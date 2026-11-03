@@ -31,9 +31,9 @@ ossl_unused uint64_t ossl_fnv1a_hash(uint8_t *key, size_t len);
 static ossl_unused ossl_inline uint64_t ossl_hash_mix64(uint64_t x)
 {
     x ^= x >> 30;
-    x *= 0xbf58476d1ce4e5b9ULL;
+    x *= UINT64_C(0xbf58476d1ce4e5b9);
     x ^= x >> 27;
-    x *= 0x94d049bb133111ebULL;
+    x *= UINT64_C(0x94d049bb133111eb);
     x ^= x >> 31;
     return x;
 }
