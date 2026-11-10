@@ -221,11 +221,7 @@ static uint64_t hashtable_collision_hash(HT_KEY *key)
 static int test_hashtable_collisions(int idx)
 {
     static unsigned char keys[][5] = { "aaa", "bbb", "bbbb", "" };
-    HT_CONFIG hash_conf = {
-        .ht_hash_fn = hashtable_collision_hash,
-        .collision_check = 1,
-        .no_rcu = idx,
-    };
+    HT_CONFIG hash_conf;
     struct {
         HT_KEY key_header;
     } key;
@@ -233,6 +229,11 @@ static int test_hashtable_collisions(int idx)
     HT_VALUE value = { 0 }, *found;
     size_t i;
     int ret = 0;
+
+    memset(&hash_conf, 0, sizeof(hash_conf));
+    hash_conf.ht_hash_fn = hashtable_collision_hash;
+    hash_conf.collision_check = 1;
+    hash_conf.no_rcu = idx;
 
     if (!TEST_ptr(ht = ossl_ht_new(&hash_conf)))
         goto end;
