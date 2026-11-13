@@ -112,7 +112,7 @@ static int dtls_buffer_record(SSL_CONNECTION *s, TLS_RECORD *rec)
      * sequence number leaves the top 16 bits for the low bits of the epoch.
      */
     item = pitem_new_u64(((rec->epoch & 0xFFFF) << 48)
-            | (rec->seq_num & 0xFFFFFFFFFFFFULL),
+            | (rec->seq_num & UINT64_C(0xFFFFFFFFFFFF)),
         rdata);
     if (rdata == NULL || item == NULL) {
         OPENSSL_free(rdata);
@@ -385,6 +385,8 @@ start:
                 || current_state == TLS_ST_SW_SESSION_TICKET
                 || (current_state == TLS_ST_OK && SSL_in_init(s)))
             && rr->type == SSL3_RT_APPLICATION_DATA)) {
+        BIO *rbio;
+
         /*
          * For DTLS 1.3 we received Application Data while we are
          * waiting for an Acknowledgement record. Buffer this data so
@@ -444,7 +446,7 @@ start:
              * SSL_ERROR_WANT_READ for SSL_READING on such a connection
              * without needing a BIO at all.
              */
-            BIO *rbio = SSL_get_rbio(s);
+            rbio = SSL_get_rbio(s);
 
             sc->rwstate = SSL_READING;
             if (rbio != NULL) {
